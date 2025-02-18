@@ -11,8 +11,21 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const { token } = await loginUser(email, password);
-      localStorage.setItem("authToken", token);
+      const { token, role, name } = await loginUser(email, password);
+
+      // Generate a unique tab identifier
+      const tabId = sessionStorage.getItem("tabId") || Date.now();
+      sessionStorage.setItem("tabId", tabId);
+
+      // Store auth details using the unique tab identifier
+      localStorage.setItem(`authToken_${tabId}`, token);
+      localStorage.setItem(`role_${tabId}`, role);
+      localStorage.setItem(`name_${tabId}`, name);
+
+      console.log("Token", token);
+      console.log("role", role);
+      console.log("name", name);
+
       navigate("/home");
     } catch (error) {
       setError("Invalid email or password.");

@@ -72,7 +72,7 @@ const login = async (req, res) => {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
 
-    res.json({ token });
+    res.json({ token, role: user.role, name: user.name });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Server error." });

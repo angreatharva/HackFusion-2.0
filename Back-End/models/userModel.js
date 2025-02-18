@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
     enum: ["student", "faculty", "admin"],
     default: "student",
   },
+  votedPolls: [{ type: mongoose.Schema.Types.ObjectId, ref: "Poll" }], // Track polls the user has voted on
   resetPasswordToken: String,
   resetPasswordExpire: Date,
 });

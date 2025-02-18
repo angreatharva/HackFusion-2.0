@@ -1,3 +1,4 @@
+// middleware/authMiddleware.js
 const jwt = require("jsonwebtoken");
 
 // Middleware to check for a valid JWT token
@@ -11,7 +12,7 @@ const auth = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded.user;
+    req.user = decoded.user; // Attach decoded user info to the request
     next();
   } catch (error) {
     res.status(401).json({ message: "Token is not valid." });
@@ -24,6 +25,7 @@ const authorize = (roles = []) => {
   if (typeof roles === "string") {
     roles = [roles];
   }
+
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ message: "Access denied." });

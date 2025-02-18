@@ -10,11 +10,14 @@
     "start": "vite"
   },
   "dependencies": {
+    "@radix-ui/react-alert-dialog": "^1.1.6",
     "axios": "^1.7.9",
+    "jwt-decode": "^4.0.0",
     "nodemon": "^3.1.9",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.5",
+    "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.15"
   },
   "devDependencies": {
