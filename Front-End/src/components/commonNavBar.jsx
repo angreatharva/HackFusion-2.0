@@ -18,6 +18,16 @@ const Navbar = ({ userInfo }) => {
 
       <div className="navbar-right">
         {/* Budget button - always visible */}
+
+        <button
+          className="navbar-button"
+          onClick={() => {
+            navigate("/applicationForm");
+          }}
+        >
+          Applications
+        </button>
+
         <button
           className="navbar-button"
           onClick={() => {

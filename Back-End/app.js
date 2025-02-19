@@ -3,9 +3,14 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const http = require("http");
+const server = http.createServer(app);
 const { connectDB } = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const pollRoutes = require("./routes/pollRoutes");
+const applicationRoutes = require("./routes/applicationRoutes");
+const escalatePriorities = require("./utils/escalation");
+const { initializeSocket } = require("./utils/socketService"); // Import socket service
 
 // Middleware to parse JSON
 app.use(express.json());
@@ -18,9 +23,16 @@ app.use(
 // Connect to MongoDB
 connectDB();
 
+// Initialize WebSocket
+initializeSocket(server);
+
+// Run Priority Escalation Every 1 Hour
+setInterval(escalatePriorities, 60 * 60 * 1000);
+
 // Define routes
 app.use("/api/auth", authRoutes);
 app.use("/api/polls", pollRoutes);
+app.use("/api/applications", applicationRoutes);
 
 const port = 8000;
 

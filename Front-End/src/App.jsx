@@ -8,6 +8,8 @@ import CreatePoll from "./components/CreatePoll"; // Admin Component
 import VotePoll from "./components/VotePoll"; // Student Component
 import PollsList from "./components/PollsList";
 import Register from "./pages/Register";
+import ApplicationForm from "./components/ApplicationForm";
+import ApplicationList from "./components/ApplicationList";
 
 function App() {
   const [role, setRole] = useState(localStorage.getItem("role"));
@@ -44,10 +46,14 @@ function App() {
           element={role === "student" ? <VotePoll token={token} /> : <Home />}
         />
         <Route path="/pollsList" element={<PollsList token={token} />} />
-        <Route path="/applicationFrom" element={<ApplicationForm token={token} />} />
-        <Route path="/applicationList" element={<ApplicationList token={token} />} />
-
-        
+        <Route
+          path="/applicationForm"
+          element={<ApplicationForm token={token} />}
+        />
+        <Route
+          path="/applicationList"
+          element={<ApplicationList token={token} />}
+        />
       </Routes>
     </Router>
   );

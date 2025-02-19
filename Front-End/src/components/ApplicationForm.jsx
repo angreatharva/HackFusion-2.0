@@ -9,16 +9,15 @@ const ApplicationForm = ({ fetchApplications }) => {
   });
 
   // Hardcoded Token (For Now)
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjdiNDMxYTBmNGRkYzVjOGU5MTQwOGI4Iiwicm9sZSI6ImFkbWluIn0sImlhdCI6MTczOTk0ODgwMSwiZXhwIjoxNzQwMDM1MjAxfQ.7vowjcvS9TgpxbIRvvaM5CxbxyVrJVj1ALUZ0f6CYcU";
+  // const token =
+  //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjdiNDMxYTBmNGRkYzVjOGU5MTQwOGI4Iiwicm9sZSI6ImFkbWluIn0sImlhdCI6MTczOTk0ODgwMSwiZXhwIjoxNzQwMDM1MjAxfQ.7vowjcvS9TgpxbIRvvaM5CxbxyVrJVj1ALUZ0f6CYcU";
 
   // Uncomment below to use token from localStorage
-  /*
+
   const tabId = sessionStorage.getItem("tabId") || Date.now();
   sessionStorage.setItem("tabId", tabId);
 
   const token = localStorage.getItem(`authToken_${tabId}`) || "";
-  */
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
