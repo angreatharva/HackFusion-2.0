@@ -10,6 +10,10 @@ import PollsList from "./components/PollsList";
 import Register from "./pages/Register";
 import ApplicationForm from "./components/ApplicationForm";
 import ApplicationList from "./components/ApplicationList";
+import StudentDashboard from "./components/StudentDashboard";
+import AdminPanel from "./components/AdminPanel";
+import AdminDashboard from "./pages/AdminDashboard";
+import CheatingList from "./components/CheatingRecordList";
 
 function App() {
   const [role, setRole] = useState(localStorage.getItem("role"));
@@ -54,6 +58,12 @@ function App() {
           path="/applicationList"
           element={<ApplicationList token={token} />}
         />
+
+        <Route path="/facilityBooking" element={<StudentDashboard />} />
+        <Route path="/admin" element={<AdminPanel />} />
+
+        <Route path="/cheatingAdmin" element={<AdminDashboard />} />
+        <Route path="/cheatingList" element={<CheatingList />} />
       </Routes>
     </Router>
   );

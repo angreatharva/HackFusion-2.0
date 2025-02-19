@@ -1,15 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { io } from "socket.io-client";
-
-const socket = io("http://localhost:8000");
 
 const ApplicationList = () => {
   const [applications, setApplications] = useState([]);
 
-  // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjdiNDMxYTBmNGRkYzVjOGU5MTQwOGI4Iiwicm9sZSI6ImFkbWluIn0sImlhdCI6MTczOTk0ODgwMSwiZXhwIjoxNzQwMDM1MjAxfQ.7vowjcvS9TgpxbIRvvaM5CxbxyVrJVj1ALUZ0f6CYcU";
-
-  // Future implementation: Store and retrieve token from localStorage
   const tabId = sessionStorage.getItem("tabId") || Date.now();
   sessionStorage.setItem("tabId", tabId);
   const token = localStorage.getItem(`authToken_${tabId}`);
@@ -28,15 +22,13 @@ const ApplicationList = () => {
   };
 
   useEffect(() => {
-    fetchApplications();
+    fetchApplications(); // Initial call
 
-    // Listen for real-time updates
-    const updateHandler = () => fetchApplications();
-    socket.on("updateApplications", updateHandler);
+    const intervalId = setInterval(() => {
+      fetchApplications();
+    }, 2000); // Fetch applications every 2 seconds
 
-    return () => {
-      socket.off("updateApplications", updateHandler);
-    };
+    return () => clearInterval(intervalId); // Cleanup interval on unmount
   }, []);
 
   const handleApproval = async (id, status) => {
@@ -50,6 +42,7 @@ const ApplicationList = () => {
           },
         }
       );
+      fetchApplications(); // Refresh list after updating status
     } catch (error) {
       console.error("Error updating application:", error);
     }

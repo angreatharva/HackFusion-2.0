@@ -22,7 +22,34 @@ const Navbar = ({ userInfo }) => {
         <button
           className="navbar-button"
           onClick={() => {
-            navigate("/applicationForm");
+            navigate("/cheatingList");
+          }}
+        >
+          Cheating List
+        </button>
+
+        <button
+          className="navbar-button"
+          onClick={() => {
+            navigate("/cheatingAdmin");
+          }}
+        >
+          Cheating Admin
+        </button>
+
+        <button
+          className="navbar-button"
+          onClick={() => {
+            navigate("/facilityBooking");
+          }}
+        >
+          Facility Booking
+        </button>
+
+        <button
+          className="navbar-button"
+          onClick={() => {
+            navigate("/applicationList");
           }}
         >
           Applications

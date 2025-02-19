@@ -9,6 +9,9 @@ const { connectDB } = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const pollRoutes = require("./routes/pollRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
+const facilityRoutes = require("./routes/facilityRoutes");
+const bookingRoutes = require("./routes/bookingRoutes");
+const slotRoutes = require("./routes/slots");
 const escalatePriorities = require("./utils/escalation");
 const { initializeSocket } = require("./utils/socketService"); // Import socket service
 
@@ -33,6 +36,10 @@ setInterval(escalatePriorities, 60 * 60 * 1000);
 app.use("/api/auth", authRoutes);
 app.use("/api/polls", pollRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use("/api/facilities", facilityRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/slots", slotRoutes);
+app.use("/api/records", require("./routes/record"));
 
 const port = 8000;
 
