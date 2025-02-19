@@ -44,6 +44,10 @@ function App() {
           element={role === "student" ? <VotePoll token={token} /> : <Home />}
         />
         <Route path="/pollsList" element={<PollsList token={token} />} />
+        <Route path="/applicationFrom" element={<ApplicationForm token={token} />} />
+        <Route path="/applicationList" element={<ApplicationList token={token} />} />
+
+        
       </Routes>
     </Router>
   );

@@ -1,9 +1,7 @@
 // middleware/authMiddleware.js
 const jwt = require("jsonwebtoken");
 
-// Middleware to check for a valid JWT token
 const auth = (req, res, next) => {
-  // Expect token in the format "Bearer <token>"
   const token = req.header("Authorization")?.split(" ")[1];
 
   if (!token) {
@@ -19,9 +17,7 @@ const auth = (req, res, next) => {
   }
 };
 
-// Role-based authorization middleware
 const authorize = (roles = []) => {
-  // roles param can be a single role string (e.g., 'admin') or an array of roles.
   if (typeof roles === "string") {
     roles = [roles];
   }
@@ -34,4 +30,12 @@ const authorize = (roles = []) => {
   };
 };
 
-module.exports = { auth, authorize };
+const checkAdmin = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    res.status(403).json({ message: "Admin access required." });
+  }
+};
+
+module.exports = { auth, authorize, checkAdmin };

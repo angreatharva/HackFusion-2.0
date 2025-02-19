@@ -9,7 +9,6 @@ const {
 } = require("../controllers/authController");
 const { auth } = require("../middleware/authMiddleware");
 
-// Public routes
 router.post("/register", register);
 router.post("/login", login);
 router.get("/users", auth, getUsers);

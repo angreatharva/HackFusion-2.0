@@ -1,14 +1,16 @@
 {
-  "name": "hackfusion",
+  "name": "backend",
   "version": "1.0.0",
-  "main": "app.js",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "server": "nodemon app.js",
+    "server": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^3.0.0",
     "cors": "^2.8.5",
