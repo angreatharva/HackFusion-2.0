@@ -1,4 +1,4 @@
-const Application = require("../models/Application");
+const Application = require("../models/applicationModel");
 const { notifyClients } = require("../utils/socketService"); // Use notifyClients from socketService
 
 // Create Application
@@ -16,7 +16,10 @@ const createApplication = async (req, res) => {
 // Get All Applications
 const getApplications = async (req, res) => {
   try {
-    const applications = await Application.find().sort({ priority: -1, createdAt: 1 });
+    const applications = await Application.find().sort({
+      priority: -1,
+      createdAt: 1,
+    });
     res.json(applications);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -31,7 +34,11 @@ const updateApplicationStatus = async (req, res) => {
       return res.status(400).json({ error: "Invalid status" });
     }
 
-    const application = await Application.findByIdAndUpdate(req.params.id, { status }, { new: true });
+    const application = await Application.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
     if (!application) {
       return res.status(404).json({ error: "Application not found" });
     }
@@ -43,4 +50,8 @@ const updateApplicationStatus = async (req, res) => {
   }
 };
 
-module.exports = { createApplication, getApplications, updateApplicationStatus };
+module.exports = {
+  createApplication,
+  getApplications,
+  updateApplicationStatus,
+};

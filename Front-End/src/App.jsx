@@ -12,7 +12,7 @@ import ApplicationForm from "./components/ApplicationForm";
 import ApplicationList from "./components/ApplicationList";
 import StudentDashboard from "./components/StudentDashboard";
 import AdminPanel from "./components/AdminPanel";
-import AdminDashboard from "./pages/AdminDashboard";
+import CheatingRecordForm from "./components/CheatingRecordForm";
 import CheatingList from "./components/CheatingRecordList";
 
 function App() {
@@ -62,7 +62,7 @@ function App() {
         <Route path="/facilityBooking" element={<StudentDashboard />} />
         <Route path="/admin" element={<AdminPanel />} />
 
-        <Route path="/cheatingAdmin" element={<AdminDashboard />} />
+        <Route path="/cheatingAdmin" element={<CheatingRecordForm />} />
         <Route path="/cheatingList" element={<CheatingList />} />
       </Routes>
     </Router>

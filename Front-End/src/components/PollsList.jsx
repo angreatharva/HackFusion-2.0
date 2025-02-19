@@ -145,7 +145,7 @@ const PollsList = ({ token }) => {
     <div className="polls-container">
       <Navbar userInfo={userInfo} />
 
-      <div className="debug-controls">
+      {/* <div className="debug-controls">
         <button
           onClick={() => setDebugMode(!debugMode)}
           className="debug-toggle"
@@ -165,7 +165,7 @@ const PollsList = ({ token }) => {
             </button>
           </div>
         )}
-      </div>
+      </div> */}
 
       <h2>All Polls</h2>
       <div className="polls-grid">

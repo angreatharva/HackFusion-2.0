@@ -1,5 +1,5 @@
-const Booking = require("../models/Booking");
-const Facility = require("../models/Facility");
+const Booking = require("../models/bookingModel");
+const Facility = require("../models/facilityModel");
 
 // 🟢 Student Requests a Booking
 const requestBooking = async (req, res) => {

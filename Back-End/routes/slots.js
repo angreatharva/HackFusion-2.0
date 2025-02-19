@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const Booking = require("../models/Booking");
-const Facility = require("../models/Facility");
+const Booking = require("../models/bookingModel");
+const Facility = require("../models/facilityModel");
 
 // Predefined slots (Modify as per your need)
 const predefinedSlots = ["9 AM - 12 PM", "2 PM - 4 PM", "6 PM - 8 PM"];

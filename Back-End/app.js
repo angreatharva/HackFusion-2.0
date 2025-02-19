@@ -1,10 +1,8 @@
-// app.js
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const app = express();
 const http = require("http");
-const server = http.createServer(app);
+
 const { connectDB } = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const pollRoutes = require("./routes/pollRoutes");
@@ -13,10 +11,16 @@ const facilityRoutes = require("./routes/facilityRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const slotRoutes = require("./routes/slots");
 const escalatePriorities = require("./utils/escalation");
-const { initializeSocket } = require("./utils/socketService"); // Import socket service
+const { initializeSocket } = require("./utils/socketService");
 
-// Middleware to parse JSON
-app.use(express.json());
+const app = express();
+const server = http.createServer(app);
+
+// Middleware to parse JSON with increased payload size
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ limit: "100mb", extended: true }));
+
+// Enable CORS
 app.use(
   cors({
     origin: true,
@@ -39,10 +43,10 @@ app.use("/api/applications", applicationRoutes);
 app.use("/api/facilities", facilityRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/slots", slotRoutes);
-app.use("/api/records", require("./routes/record"));
+app.use("/api/records", require("./routes/recordRoutes"));
 
 const port = 8000;
 
-app.listen(port, () => {
-  console.log(`Server Listening on port http://localhost:${port}`);
+server.listen(port, () => {
+  console.log(`Server listening on http://localhost:${port}`);
 });
