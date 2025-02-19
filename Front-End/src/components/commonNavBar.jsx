@@ -17,8 +17,6 @@ const Navbar = ({ userInfo }) => {
       </div>
 
       <div className="navbar-right">
-        {/* Budget button - always visible */}
-
         <button
           className="navbar-button"
           onClick={() => {
@@ -52,16 +50,16 @@ const Navbar = ({ userInfo }) => {
             navigate("/applicationList");
           }}
         >
-          Applications
+          Applications List
         </button>
 
         <button
           className="navbar-button"
           onClick={() => {
-            navigate("/budget");
+            navigate("/applicationForm");
           }}
         >
-          Budget
+          Applications Form
         </button>
 
         {/* Check-Up button - always visible */}

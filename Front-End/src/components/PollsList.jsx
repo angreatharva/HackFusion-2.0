@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getPolls } from "../api/poll";
+import Navbar from "../components/commonNavBar";
+import { useNavigate } from "react-router-dom";
 
 const calculatePercentage = (votes, totalVotes) => {
   return totalVotes ? (votes / totalVotes) * 100 : 0;
@@ -8,6 +10,24 @@ const calculatePercentage = (votes, totalVotes) => {
 const POLLING_INTERVAL = 5000; // 5 seconds
 
 const PollsList = ({ token }) => {
+  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get the unique tab identifier
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
+    const name = localStorage.getItem(`name_${tabId}`);
+    const role = localStorage.getItem(`role_${tabId}`);
+
+    // If token does not exist, navigate to login page
+    if (!token) {
+      navigate("/");
+    } else {
+      // Set the user info (name, role) into the state
+      setUserInfo({ name, role });
+    }
+  }, [navigate]);
   const [polls, setPolls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOptions, setSelectedOptions] = useState({});
@@ -123,6 +143,8 @@ const PollsList = ({ token }) => {
 
   return (
     <div className="polls-container">
+      <Navbar userInfo={userInfo} />
+
       <div className="debug-controls">
         <button
           onClick={() => setDebugMode(!debugMode)}
@@ -215,7 +237,7 @@ const PollsList = ({ token }) => {
 
       <style>{`
         .polls-container {
-          max-width: 90%;
+          // max-width: 90%;
           margin: 20px auto;
           padding: 20px;
         }
