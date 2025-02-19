@@ -51,7 +51,7 @@ exports.reportLeave = async (req, res) => {
     }
 
     const subject = 'Student Has Left Campus';
-    const text = `Dear Parent,\n\nThis is an automated alert that your child, ${student.name}, has left the campus. Please contact the school for further details if necessary.\n\nRegards,\nCollege Admin`;
+    const text = `Dear Parent,\n\nThis is an automated alert that your child, ${student.name}, has left the campus. Please contact the college for further details if necessary.\n\nRegards,\nCollege Admin`;
 
     // Send email to parent's email
     await NotificationController.sendEmailNotification(student.parentEmail, subject, text);
