@@ -1,27 +1,13 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Applications from "./pages/Applications";
-import Budget from "./pages/Budget";
-import NotFound from "./pages/NotFound";
+import ApplicationForm from "./components/ApplicationForm";
+import ApplicationList from "./components/ApplicationList";
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-900 text-white">
-        <Navbar />
-        <div className="container mx-auto p-6">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/applications" element={<Applications />} />
-            <Route path="/budget" element={<Budget />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </div>
-      </div>
-    </Router>
+    <div className="min-h-screen p-4 bg-gray-200">
+      <h1 className="text-2xl font-bold text-center mb-4">Application & Approval System</h1>
+      <ApplicationForm />
+      <ApplicationList />
+    </div>
   );
 }
 
