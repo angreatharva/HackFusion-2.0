@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import CreatePoll from "./components/CreatePoll"; // Admin Component
 import VotePoll from "./components/VotePoll"; // Student Component
 import PollsList from "./components/PollsList";
+import Register from "./pages/Register";
 
 function App() {
   const [role, setRole] = useState(localStorage.getItem("role"));
@@ -30,6 +31,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/home" element={<Home />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Admin only routes */}
         <Route

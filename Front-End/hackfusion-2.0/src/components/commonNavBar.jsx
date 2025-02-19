@@ -82,63 +82,56 @@ const Navbar = ({ userInfo }) => {
           Logout
         </button>
       </div>
-
       <style>{`
-        .navbar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background-color: #333;
-          padding: 8px;
-          width: 100%;
-        }
+  .navbar {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    background-color: #333 !important;
+    padding: 8px !important;
+    width: 100% !important;
+  }
 
-        .navbar-left {
-          color: white;
-        }
+  .navbar-left {
+    color: white !important;
+  }
 
-        .navbar-brand {
-          font-size: 1.5em;
-          color: white;
-          font-weight: bold;
-        }
+  .navbar-brand {
+    font-size: 1.5em !important;
+    color: white !important;
+    font-weight: bold !important;
+  }
 
-        .navbar-right {
-          display: flex;
-          align-items: center;
-        }
+  .navbar-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important; /* Adds spacing between buttons */
+  }
 
-        .navbar-button {
-          margin-left: 10px;
-          padding: 8px 16px;
-          border: none;
-          background-color: #4caf50;
-          color: white;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
+  .navbar-button, .logout-button {
+    display: inline-block !important;
+    padding: 8px 16px !important;
+    border: none !important;
+    background-color: #4caf50 !important;
+    color: white !important;
+    border-radius: 5px !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s ease !important;
+    white-space: nowrap !important; /* Ensures the button doesn't wrap text */
+  }
 
-        .navbar-button:hover {
-          background-color: #45a049;
-        }
+  .navbar-button:hover {
+    background-color: #45a049 !important;
+  }
 
-        .logout-button {
-         margin-left: 10px;
-          padding: 8px 16px;
-          border: none;
-          color: white;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-          background-color: #f44336;
-          margin-left: 20px;
-        }
+  .logout-button {
+    background-color: #f44336 !important;
+  }
 
-        .logout-button:hover {
-          background-color: #d32f2f;
-        }
-      `}</style>
+  .logout-button:hover {
+    background-color: #d32f2f !important;
+  }
+`}</style>
     </nav>
   );
 };

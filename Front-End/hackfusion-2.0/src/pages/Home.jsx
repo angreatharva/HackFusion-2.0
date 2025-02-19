@@ -45,8 +45,7 @@ const Home = () => {
       <div className="content">
         <h2>Welcome, {userInfo.name}!</h2>
         <p>Your role: {userInfo.role}</p>
-
-        {/* Conditional rendering for voting button */}
+        Conditional rendering for voting button
         {userInfo.role === "student" && (
           <button
             className="voting-button"
@@ -57,7 +56,6 @@ const Home = () => {
             Go to Voting
           </button>
         )}
-
         {/* Display admin button for admins */}
         {userInfo.role === "admin" && (
           <button
