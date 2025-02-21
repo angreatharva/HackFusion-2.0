@@ -1,7 +1,16 @@
 import { useState } from "react";
 import { createPoll } from "../api/poll";
 
-const CreatePoll = ({ token }) => {
+const CreatePoll = () => {
+  // Retrieve tabId and token (along with name and role if needed) from localStorage
+  const tabId = sessionStorage.getItem("tabId");
+  const token = localStorage.getItem(`authToken_${tabId}`);
+  const name = localStorage.getItem(`name_${tabId}`);
+  const role = localStorage.getItem(`role_${tabId}`);
+  console.log("Tokeen:" + token);
+  console.log("namee:" + name);
+  console.log("rolee:" + role);
+
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
 

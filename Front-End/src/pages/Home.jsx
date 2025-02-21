@@ -12,6 +12,9 @@ const Home = () => {
     const token = localStorage.getItem(`authToken_${tabId}`);
     const name = localStorage.getItem(`name_${tabId}`);
     const role = localStorage.getItem(`role_${tabId}`);
+    console.log("Tokeen:" + token);
+    console.log("namee:" + name);
+    console.log("rolee:" + role);
 
     // If token does not exist, navigate to login page
     if (!token) {

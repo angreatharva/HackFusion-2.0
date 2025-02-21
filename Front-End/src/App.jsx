@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Home from "./pages/Home";
-import CreatePoll from "./components/CreatePoll"; // Admin Component
-import VotePoll from "./components/VotePoll"; // Student Component
+import CreatePoll from "./components/CreatePoll";
+import VotePoll from "./components/VotePoll";
 import PollsList from "./components/PollsList";
 import Register from "./pages/Register";
 import ApplicationForm from "./components/ApplicationForm";
@@ -16,20 +16,6 @@ import CheatingRecordForm from "./components/CheatingRecordForm";
 import CheatingList from "./components/CheatingRecordList";
 
 function App() {
-  const [role, setRole] = useState(localStorage.getItem("role"));
-  const [token, setToken] = useState(localStorage.getItem("authToken"));
-
-  useEffect(() => {
-    if (token) {
-      setRole(localStorage.getItem("role")); // Set role from localStorage when token exists
-    }
-  }, [token]);
-
-  // Wait for role to be set before rendering Routes
-  if (!role) {
-    return <div>Loading...</div>; // Or return a loading spinner until the role is fetched
-  }
-
   return (
     <Router>
       <Routes>
@@ -39,29 +25,14 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Admin only routes */}
-        <Route
-          path="/create-poll"
-          element={role === "admin" ? <CreatePoll token={token} /> : <Home />}
-        />
-        {/* Student only routes */}
-        <Route
-          path="/vote-poll"
-          element={role === "student" ? <VotePoll token={token} /> : <Home />}
-        />
-        <Route path="/pollsList" element={<PollsList token={token} />} />
-        <Route
-          path="/applicationForm"
-          element={<ApplicationForm token={token} />}
-        />
-        <Route
-          path="/applicationList"
-          element={<ApplicationList token={token} />}
-        />
-
+        {/* These routes now render their components directly */}
+        <Route path="/create-poll" element={<CreatePoll />} />
+        <Route path="/vote-poll" element={<VotePoll />} />
+        <Route path="/pollsList" element={<PollsList />} />
+        <Route path="/applicationForm" element={<ApplicationForm />} />
+        <Route path="/applicationList" element={<ApplicationList />} />
         <Route path="/facilityBooking" element={<StudentDashboard />} />
         <Route path="/admin" element={<AdminPanel />} />
-
         <Route path="/cheatingAdmin" element={<CheatingRecordForm />} />
         <Route path="/cheatingList" element={<CheatingList />} />
       </Routes>
