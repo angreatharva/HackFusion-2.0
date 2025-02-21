@@ -27,6 +27,13 @@ app.use(
   })
 );
 
+const { connectDB } = require("./config/db");
+const { auth, authorize } = require("../middleware/authMiddleware");
+const complaintRoutes = require("./routes/complaintRoutes"); // ✅ Import complaint routes
+
+// Middleware to parse JSON
+app.use(express.json());
+
 // Connect to MongoDB
 connectDB();
 
@@ -44,9 +51,11 @@ app.use("/api/facilities", facilityRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/slots", slotRoutes);
 app.use("/api/records", require("./routes/recordRoutes"));
+// Define routes
+app.use("/api/auth", authRoutes);
+app.use("/api/complaints", complaintRoutes);
 
 const port = 8000;
-
-server.listen(port, () => {
-  console.log(`Server listening on http://localhost:${port}`);
+app.listen(port, () => {
+  console.log(`Server Listening on port http://localhost:${port}`);
 });
