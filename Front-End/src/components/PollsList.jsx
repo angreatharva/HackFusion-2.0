@@ -7,32 +7,27 @@ const calculatePercentage = (votes, totalVotes) => {
   return totalVotes ? (votes / totalVotes) * 100 : 0;
 };
 
-const POLLING_INTERVAL = 1000; // 1 second (adjust if needed)
+const POLLING_INTERVAL = 5000; // 5 seconds
 
-const PollsList = () => {
+const PollsList = ({ token }) => {
   const [userInfo, setUserInfo] = useState({ name: "", role: "" });
   const navigate = useNavigate();
 
-  // Retrieve the unique tab identifier and token from localStorage
-  const tabId = sessionStorage.getItem("tabId");
-  const token = localStorage.getItem(`authToken_${tabId}`);
-
   useEffect(() => {
-    // Retrieve additional user info from localStorage
+    // Get the unique tab identifier
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
     const name = localStorage.getItem(`name_${tabId}`);
     const role = localStorage.getItem(`role_${tabId}`);
-    console.log("Token:", token);
-    console.log("Name:", name);
-    console.log("Role:", role);
 
     // If token does not exist, navigate to login page
     if (!token) {
       navigate("/");
     } else {
+      // Set the user info (name, role) into the state
       setUserInfo({ name, role });
     }
-  }, [navigate, tabId, token]);
-
+  }, [navigate]);
   const [polls, setPolls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOptions, setSelectedOptions] = useState({});
@@ -150,6 +145,28 @@ const PollsList = () => {
     <div className="polls-container">
       <Navbar userInfo={userInfo} />
 
+      {/* <div className="debug-controls">
+        <button
+          onClick={() => setDebugMode(!debugMode)}
+          className="debug-toggle"
+        >
+          {debugMode ? "Hide Debug Info" : "Show Debug Info"}
+        </button>
+        {debugMode && (
+          <div className="debug-info">
+            <p>
+              Last Updated:{" "}
+              {lastUpdated ? lastUpdated.toLocaleTimeString() : "Never"}
+            </p>
+            <p>Poll Count: {polls.length}</p>
+            <p>Update Interval: {POLLING_INTERVAL / 1000}s</p>
+            <button onClick={fetchPolls} className="debug-refresh">
+              Manual Refresh
+            </button>
+          </div>
+        )}
+      </div> */}
+
       <h2>All Polls</h2>
       <div className="polls-grid">
         {polls.map((poll) => {
@@ -220,8 +237,51 @@ const PollsList = () => {
 
       <style>{`
         .polls-container {
+          // max-width: 90%;
           margin: 20px auto;
           padding: 20px;
+        }
+
+        .debug-controls {
+          position: fixed;
+          top: 10px;
+          right: 10px;
+          z-index: 1000;
+          background: white;
+          padding: 10px;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .debug-toggle {
+          background: #007bff;
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .debug-info {
+          margin-top: 10px;
+          padding: 10px;
+          background: #f8f9fa;
+          border-radius: 4px;
+        }
+
+        .debug-info p {
+          margin: 5px 0;
+          font-size: 0.9em;
+        }
+
+        .debug-refresh {
+          background: #28a745;
+          color: white;
+          border: none;
+          padding: 6px 12px;
+          border-radius: 4px;
+          cursor: pointer;
+          margin-top: 5px;
         }
 
         h2 {
