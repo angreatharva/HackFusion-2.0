@@ -14,7 +14,7 @@ const auth = (req, res, next) => {
     req.user = decoded.user;
     next();
   } catch (error) {
-    res.status(401).json({ message: "Token is not valid." });
+    return res.status(401).json({ message: "Token is not valid." });
   }
 };
 
@@ -24,8 +24,9 @@ const authorize = (roles = []) => {
   if (typeof roles === "string") {
     roles = [roles];
   }
+
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    if (!req.user || !roles.includes(req.user.role)) {
       return res.status(403).json({ message: "Access denied." });
     }
     next();
