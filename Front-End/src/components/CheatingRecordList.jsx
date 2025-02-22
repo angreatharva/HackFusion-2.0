@@ -5,7 +5,6 @@ import Navbar from "../components/commonNavBar";
 
 function CheatingRecordList() {
   const [records, setRecords] = useState([]);
-  const [applications, setApplications] = useState([]);
   const [userInfo, setUserInfo] = useState({ name: "", role: "" });
   const navigate = useNavigate();
 
@@ -34,7 +33,6 @@ function CheatingRecordList() {
   return (
     <div style={styles.container}>
       <Navbar userInfo={userInfo} />
-
       <h2 style={styles.title}>Cheating Records</h2>
       {records.length === 0 ? (
         <p style={styles.noRecords}>No cheating records available.</p>
@@ -43,6 +41,22 @@ function CheatingRecordList() {
           {records.map((record) => (
             <div key={record._id} style={styles.recordCard}>
               <h4 style={styles.studentName}>{record.studentName}</h4>
+              <p>
+                <strong>UCID:</strong> {record.ucid}
+              </p>
+              <p>
+                <strong>Semester:</strong> {record.semester}
+              </p>
+              <p>
+                <strong>Subject:</strong> {record.subjectName}
+              </p>
+              <p>
+                <strong>Examination:</strong> {record.examination}
+              </p>
+              <p>
+                <strong>Date:</strong>{" "}
+                {new Date(record.dateOfCheating).toLocaleDateString()}
+              </p>
               <p>
                 <strong>Reason:</strong> {record.reason}
               </p>
@@ -59,47 +73,51 @@ function CheatingRecordList() {
 
 const styles = {
   container: {
-    maxWidth: "100%",
-    margin: "20px auto",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "10px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+    maxWidth: "90%",
+    margin: "30px auto",
+    backgroundColor: "#F7F9FC",
+    borderRadius: "12px",
+    boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+    padding: "20px",
     textAlign: "center",
   },
   title: {
-    color: "#4AAC4E",
-    fontSize: "24px",
+    color: "#2E7D32",
+    fontSize: "26px",
     fontWeight: "bold",
+    marginBottom: "20px",
   },
   noRecords: {
     color: "#777",
-    fontSize: "16px",
+    fontSize: "18px",
+    fontStyle: "italic",
   },
   gridContainer: {
-    display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    gap: "15px",
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+    gap: "20px",
+    justifyContent: "center",
   },
   recordCard: {
     backgroundColor: "#fff",
-    borderLeft: "5px solid #4AAC4E",
+    borderLeft: "5px solid #2E7D32",
     padding: "15px",
-    borderRadius: "8px",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-    width: "calc(50% - 10px)", // Two items per row with spacing
-    boxSizing: "border-box",
+    borderRadius: "10px",
+    boxShadow: "0 3px 6px rgba(0, 0, 0, 0.15)",
     textAlign: "left",
+    transition: "transform 0.2s ease-in-out",
   },
   studentName: {
-    color: "#333",
-    fontSize: "18px",
-    marginBottom: "5px",
+    color: "#1E1E1E",
+    fontSize: "20px",
+    marginBottom: "8px",
   },
   image: {
-    width: "100px",
-    borderRadius: "5px",
+    width: "100%",
+    maxWidth: "250px",
+    borderRadius: "8px",
     marginTop: "10px",
+    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
   },
 };
 

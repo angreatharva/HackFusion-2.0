@@ -1,14 +1,14 @@
-const express = require('express');
+// routes/complaintRoutes.js
+const express = require("express");
 const router = express.Router();
-const complaintController = require('../controllers/complaintController');
-const { auth, authorize } = require('../middleware/authMiddleware');//
-const contentFilterMiddleware = require('../middleware/contentFilterMiddleware');
+const complaintController = require("../controllers/complaintController");
 
-router.use(auth); // 
-
-router.post('/submit', contentFilterMiddleware, complaintController.submitComplaint);
-router.get('/', complaintController.getComplaints);
-router.patch('/:complaintId/moderate', authorize(['boardMember', 'moderator']), complaintController.moderateComplaint);
-router.post('/:complaintId/reveal-identity', authorize(['boardMember']), complaintController.requestIdentityReveal);
+router.post("/submit", complaintController.submitComplaint);
+router.get("/", complaintController.getComplaints); // Updated route to get all complaints
+router.post(
+  "/increment-approval/:complaintId",
+  complaintController.incrementApproval
+);
+router.post("/vote", complaintController.voteComplaint); // New vote route
 
 module.exports = router;

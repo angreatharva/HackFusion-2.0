@@ -13,7 +13,7 @@ const auth = (req, res, next) => {
     req.user = decoded.user; // Attach decoded user info to the request
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Token is not valid." });
+    res.status(401).json({ message: "Token is not valid." });
   }
 };
 
@@ -23,7 +23,7 @@ const authorize = (roles = []) => {
   }
 
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    if (!roles.includes(req.user.role)) {
       return res.status(403).json({ message: "Access denied." });
     }
     next();
@@ -31,7 +31,7 @@ const authorize = (roles = []) => {
 };
 
 const checkAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
+  if (req.user && req.user.role === "admin") {
     next();
   } else {
     res.status(403).json({ message: "Admin access required." });

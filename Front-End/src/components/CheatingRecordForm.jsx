@@ -6,6 +6,11 @@ const AddRecord = () => {
   const [studentName, setStudentName] = useState("");
   const [reason, setReason] = useState("");
   const [proof, setProof] = useState(null);
+  const [ucid, setUcid] = useState("");
+  const [dateOfCheating, setDateOfCheating] = useState("");
+  const [examination, setExamination] = useState("Mid-Sem");
+  const [semester, setSemester] = useState(1);
+  const [subjectName, setSubjectName] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [userInfo, setUserInfo] = useState({ name: "", role: "" });
@@ -55,9 +60,14 @@ const AddRecord = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          ucid,
           studentName,
           reason,
           proof,
+          dateOfCheating,
+          examination,
+          semester,
+          subjectName,
         }),
       });
 
@@ -70,6 +80,11 @@ const AddRecord = () => {
       setStudentName("");
       setReason("");
       setProof(null);
+      setDateOfCheating("");
+      setExamination("");
+      setSemester("");
+      setSubjectName("");
+      setUcid("");
     } catch (err) {
       setError(err.message);
       console.error("Error adding record:", err);
@@ -85,6 +100,20 @@ const AddRecord = () => {
         {success && <p style={styles.success}>{success}</p>}
         <form onSubmit={handleSubmit}>
           <div style={styles.inputGroup}>
+            <label htmlFor="ucid" style={styles.label}>
+              UCID:
+            </label>
+            <input
+              type="text"
+              id="ucid"
+              value={ucid}
+              onChange={(e) => setUcid(e.target.value)}
+              required
+              style={styles.input}
+            />
+          </div>
+
+          <div style={styles.inputGroup}>
             <label htmlFor="studentName" style={styles.label}>
               Student Name:
             </label>
@@ -97,6 +126,7 @@ const AddRecord = () => {
               style={styles.input}
             />
           </div>
+
           <div style={styles.inputGroup}>
             <label htmlFor="reason" style={styles.label}>
               Reason:
@@ -110,6 +140,77 @@ const AddRecord = () => {
               style={styles.input}
             />
           </div>
+
+          <div style={styles.inputGroup}>
+            <label htmlFor="dateofcheating" style={styles.label}>
+              Date of Cheating:
+            </label>
+            <input
+              type="date"
+              id="dateofcheating"
+              value={dateOfCheating}
+              onChange={(e) => setDateOfCheating(e.target.value)}
+              required
+              style={styles.input}
+            />
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label htmlFor="examination" style={styles.label}>
+              Examination:
+            </label>
+
+            <select
+              id="examination"
+              name="examination"
+              value={examination}
+              onChange={(e) => setExamination(e.target.value)}
+              required
+              style={styles.input}
+            >
+              <option value="Mid-Sem">Mid-Sem</option>
+              <option value="End-Sem">End-Sem</option>
+            </select>
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label htmlFor="semester" style={styles.label}>
+              Semester:
+            </label>
+
+            <select
+              id="semester"
+              name="semester"
+              value={semester}
+              onChange={(e) => setSemester(e.target.value)}
+              required
+              style={styles.input}
+            >
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+            </select>
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label htmlFor="subjectname" style={styles.label}>
+              Subject Name:
+            </label>
+            <input
+              type="text"
+              id="subjectname"
+              value={subjectName}
+              onChange={(e) => setSubjectName(e.target.value)}
+              required
+              style={styles.input}
+            />
+          </div>
+
           <div style={styles.inputGroup}>
             <label htmlFor="proof" style={styles.label}>
               Proof:
@@ -127,6 +228,7 @@ const AddRecord = () => {
               </p>
             )}
           </div>
+
           <button type="submit" style={styles.submitButton}>
             Submit
           </button>

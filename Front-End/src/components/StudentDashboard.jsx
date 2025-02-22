@@ -18,6 +18,13 @@ const StudentDashboard = () => {
   const fetchBookings = async () => {
     setLoading(true);
     try {
+      const tabId = sessionStorage.getItem("tabId");
+      const token = localStorage.getItem(`authToken_${tabId}`);
+      const name = localStorage.getItem(`name_${tabId}`);
+      const role = localStorage.getItem(`role_${tabId}`);
+      console.log("Token:" + token);
+      console.log("Name:" + name);
+      console.log("Role:" + role);
       const res = await fetch(
         "http://localhost:8000/api/bookings/my-bookings",
         {
@@ -66,7 +73,14 @@ const StudentDashboard = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:8000/api/bookings", {
+      const tabId = sessionStorage.getItem("tabId");
+      const token = localStorage.getItem(`authToken_${tabId}`);
+      const name = localStorage.getItem(`name_${tabId}`);
+      const role = localStorage.getItem(`role_${tabId}`);
+      console.log("Token:" + token);
+      console.log("Name:" + name);
+      console.log("Role:" + role);
+      const res = await fetch("http://localhost:8000/api/bookings/request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,7 +93,7 @@ const StudentDashboard = () => {
       alert(data.message);
 
       if (res.ok) {
-        fetchBookings(); // Refresh bookings automatically
+        fetchBookings();
         setSelectedFacility("");
         setDate("");
         setTimeSlot("");
@@ -90,13 +104,12 @@ const StudentDashboard = () => {
     }
   };
 
-  // Function to get the minimum and maximum allowed dates (next 7 days)
   const getMinMaxDates = () => {
     const today = new Date();
-    const minDate = today.toISOString().split("T")[0]; // Today's date
+    const minDate = today.toISOString().split("T")[0];
     const maxDate = new Date(today.setDate(today.getDate() + 7))
       .toISOString()
-      .split("T")[0]; // 7 days from today
+      .split("T")[0];
     return { minDate, maxDate };
   };
 
@@ -104,6 +117,117 @@ const StudentDashboard = () => {
 
   return (
     <div className="dashboard-container">
+      <style>{`
+        /* General Styles */
+        body {
+          font-family: "Arial", sans-serif;
+          background-color: #f4f4f9;
+          color: #333;
+          margin: 0;
+          padding: 0;
+        }
+
+        .dashboard-container {
+          max-width: 1200px;
+          margin: 20px auto;
+          padding: 20px;
+          background-color: #fff;
+          border-radius: 8px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2, h3 {
+          color: #2c3e50;
+        }
+
+        h2 {
+          font-size: 24px;
+          margin-bottom: 20px;
+        }
+
+        h3 {
+          font-size: 20px;
+          margin-bottom: 15px;
+        }
+
+        /* Booking Form Styles */
+        .booking-form {
+          margin-bottom: 30px;
+          padding: 20px;
+          background-color: #f9f9f9;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .booking-form form {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .booking-form select,
+        .booking-form input[type="date"] {
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          font-size: 16px;
+          background-color: #fff;
+          transition: border-color 0.3s ease;
+        }
+
+        .booking-form select:focus,
+        .booking-form input[type="date"]:focus {
+          border-color: #3498db;
+          outline: none;
+        }
+
+        .booking-form button {
+          padding: 10px 15px;
+          background-color: #3498db;
+          color: #fff;
+          border: none;
+          border-radius: 4px;
+          font-size: 16px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+
+        .booking-form button:hover {
+          background-color: #2980b9;
+        }
+
+        /* Booking Table Styles */
+        .booking-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 30px;
+        }
+
+        .booking-table th,
+        .booking-table td {
+          padding: 12px;
+          text-align: left;
+          border-bottom: 1px solid #ddd;
+        }
+
+        .booking-table th {
+          background-color: #3498db;
+          color: #fff;
+        }
+
+        .booking-table tr:hover {
+          background-color: #f1f1f1;
+        }
+
+        /* Availability Chart Styles */
+        .availability-chart {
+          margin-top: 30px;
+          padding: 20px;
+          background-color: #f9f9f9;
+          border-radius: 8px;
+        }
+      `}</style>
+
       <h2>📅 My Bookings</h2>
 
       <div className="booking-form">
@@ -126,8 +250,8 @@ const StudentDashboard = () => {
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            min={minDate} // Restrict to today's date
-            max={maxDate} // Restrict to 7 days from today
+            min={minDate}
+            max={maxDate}
             required
           />
 
@@ -179,7 +303,6 @@ const StudentDashboard = () => {
         </table>
       )}
 
-      {/* Availability Chart */}
       <div className="availability-chart">
         <h3>📊 Availability Chart</h3>
         {selectedFacility && date ? (

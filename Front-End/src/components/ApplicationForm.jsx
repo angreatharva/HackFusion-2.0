@@ -1,295 +1,236 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/commonNavBar";
+import axios from "axios";
 
-const ApplicationForm = ({ fetchApplications }) => {
-  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+const ApplicationForm = ({ onApplicationSubmit }) => {
+  const [formData, setFormData] = useState({
+    studentName: "",
+    email: "",
+    contactNo: "",
+    type: "Event Organization",
+    eventName: "",
+    requestedBudget: "",
+    justification: "",
+    supportingDoc: "",
+  });
+
   const navigate = useNavigate();
+  const [token, setToken] = useState("");
 
   useEffect(() => {
-    // Get the unique tab identifier
     const tabId = sessionStorage.getItem("tabId");
-    const token = localStorage.getItem(`authToken_${tabId}`);
-    const name = localStorage.getItem(`name_${tabId}`);
-    const role = localStorage.getItem(`role_${tabId}`);
+    const storedToken = localStorage.getItem(`authToken_${tabId}`);
 
-    // If token does not exist, navigate to login page
-    if (!token) {
+    if (!storedToken) {
       navigate("/");
     } else {
-      // Set the user info (name, role) into the state
-      setUserInfo({ name, role });
+      setToken(storedToken);
     }
   }, [navigate]);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    type: "Event",
-    description: "",
-  });
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const tabId = sessionStorage.getItem("tabId") || Date.now();
-  sessionStorage.setItem("tabId", tabId);
-
-  const token = localStorage.getItem(`authToken_${tabId}`) || "";
-
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError("");
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        setFormData({ ...formData, supportingDoc: reader.result });
+      };
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setError("");
+    if (!token) return alert("Unauthorized: Please log in again.");
 
     try {
-      await axios.post("http://localhost:8000/api/applications", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await axios.post(
+        "http://localhost:8000/api/applications",
+        { ...formData, priority: 1 },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert("Application submitted successfully!");
+      setFormData({
+        studentName: "",
+        email: "",
+        contactNo: "",
+        type: "Event Organization",
+        eventName: "",
+        requestedBudget: "",
+        justification: "",
+        supportingDoc: "",
       });
-      fetchApplications();
-      setFormData({ name: "", type: "Event", description: "" });
+
+      if (onApplicationSubmit) {
+        onApplicationSubmit();
+      }
     } catch (error) {
-      setError("Failed to submit application. Please try again.");
       console.error("Error submitting application:", error);
-    } finally {
-      setIsSubmitting(false);
+      alert("Failed to submit application.");
     }
   };
 
   return (
-    <>
+    <div className="application-container">
+      <h2 className="title">📜 Submit Application</h2>
+
+      <div className="form-box">
+        <form onSubmit={handleSubmit} className="application-form">
+          <input
+            type="text"
+            name="studentName"
+            placeholder="👤 Student Name"
+            value={formData.studentName}
+            onChange={handleChange}
+            className="input-field"
+            required
+          />
+
+          <input
+            type="email"
+            name="email"
+            placeholder="📧 Email ID"
+            value={formData.email}
+            onChange={handleChange}
+            className="input-field"
+            required
+          />
+
+          <input
+            type="tel"
+            name="contactNo"
+            placeholder="📞 Contact No"
+            value={formData.contactNo}
+            onChange={handleChange}
+            className="input-field"
+            required
+          />
+
+          <select
+            name="type"
+            value={formData.type}
+            onChange={handleChange}
+            className="input-field"
+          >
+            <option value="Event Organization">🎉 Event Organization</option>
+            <option value="Budget Request">💰 Budget Request</option>
+            <option value="Sponsorship">🤝 Sponsorship</option>
+          </select>
+
+          <input
+            type="text"
+            name="eventName"
+            placeholder="📌 Event/Project Name"
+            value={formData.eventName}
+            onChange={handleChange}
+            className="input-field"
+            required
+          />
+
+          <input
+            type="number"
+            name="requestedBudget"
+            placeholder="💵 Requested Budget"
+            value={formData.requestedBudget}
+            onChange={handleChange}
+            className="input-field"
+            required
+          />
+
+          <textarea
+            name="justification"
+            placeholder="✍️ Justification/Details"
+            value={formData.justification}
+            onChange={handleChange}
+            className="input-field textarea"
+            required
+          ></textarea>
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="file-input"
+          />
+
+          <button type="submit" className="submit-btn">🚀 Submit Application</button>
+        </form>
+      </div>
+
       <style>
         {`
-          .form-container {
-            min-height: 100vh;
-            background: #f8f9fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+          .application-container {
+            max-width: 700px;
+            margin: auto;
+            padding: 20px;
           }
-
-          .form-wrapper {
-            width: 100%;
-            max-width: 600px;
+          .title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+          }
+          .form-box {
             background: white;
+            padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
           }
-
-          .form-header {
-            background: linear-gradient(135deg,#45A049 0%,#45A049 100%);
-            padding: 2rem;
-            color: white;
-          }
-
-          .form-header h2 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 600;
-          }
-
-          .form-header p {
-            margin: 0.5rem 0 0;
-            opacity: 0.9;
-          }
-
-          .form-content {
-            padding: 2rem;
-          }
-
-          .error-message {
-            background: #fee2e2;
-            border-left: 4px solid #ef4444;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
+          .application-form {
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: #991b1b;
+            flex-direction: column;
+            gap: 12px;
           }
-
-          .form-group {
-            margin-bottom: 1.5rem;
-          }
-
-          .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
+          .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
             color: #374151;
-          }
-
-          .form-group input,
-          .form-group select,
-          .form-group textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: all 0.2s;
-          }
-
-          .form-group input:focus,
-          .form-group select:focus,
-          .form-group textarea:focus {
             outline: none;
-            border-color: #45A049;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            transition: 0.3s;
           }
-
-          .form-group textarea {
+          .input-field:focus {
+            border-color: #facc15;
+            box-shadow: 0 0 8px rgba(250, 204, 21, 0.5);
+          }
+          .textarea {
             height: 80px;
-            resize: vertical;
+            resize: none;
           }
-
-          .helper-text {
-            margin-top: 0.5rem;
-            font-size: 0.875rem;
-            color: #6b7280;
-          }
-
-          .submit-button {
+          .file-input {
             width: 100%;
-            padding: 0.875rem;
-            background: #45A049;
-            color: white;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+          }
+          .submit-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            background-color: #facc15;
+            color: #1e293b;
+            transition: 0.3s;
             border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 500;
             cursor: pointer;
-            transition: background-color 0.2s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
           }
-
-          .submit-button:hover {
-            background:rgb(47, 95, 49);
-          }
-
-          .submit-button:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-          }
-
-          .spinner {
-            animation: spin 1s linear infinite;
-            width: 20px;
-            height: 20px;
-          }
-
-          @keyframes spin {
-            from {
-              transform: rotate(0deg);
-            }
-            to {
-              transform: rotate(360deg);
-            }
+          .submit-btn:hover {
+            background-color: #eab308;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(250, 204, 21, 0.4);
           }
         `}
       </style>
-
-      <Navbar userInfo={userInfo} />
-      <div className="form-container">
-        <div className="form-wrapper">
-          <div className="form-header">
-            <h2>New Application</h2>
-            <p>Complete the form below to submit your application</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="form-content">
-            {error && (
-              <div className="error-message">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                {error}
-              </div>
-            )}
-
-            <div className="form-group">
-              <label>Full Name</label>
-              <input
-                type="text"
-                name="name"
-                placeholder="Enter your full name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Application Type</label>
-              <select name="type" value={formData.type} onChange={handleChange}>
-                <option value="Event">Event</option>
-                <option value="Budget">Budget</option>
-                <option value="Sponsorship">Sponsorship</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Description</label>
-              <textarea
-                name="description"
-                placeholder="Please provide a detailed description..."
-                value={formData.description}
-                onChange={handleChange}
-                required
-              />
-              <p className="helper-text">
-                Please be as detailed as possible in your description
-              </p>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="submit-button"
-            >
-              {isSubmitting ? (
-                <>
-                  <svg className="spinner" viewBox="0 0 24 24">
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      strokeDasharray="32"
-                      strokeDashoffset="32"
-                    />
-                  </svg>
-                  Processing...
-                </>
-              ) : (
-                "Submit Application"
-              )}
-            </button>
-          </form>
-        </div>
-      </div>
-    </>
+    </div>
   );
 };
 

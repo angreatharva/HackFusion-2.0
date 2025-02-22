@@ -11,9 +11,15 @@ import Register from "./pages/Register";
 import ApplicationForm from "./components/ApplicationForm";
 import ApplicationList from "./components/ApplicationList";
 import StudentDashboard from "./components/StudentDashboard";
-import AdminPanel from "./components/AdminPanel";
+import FacilityApproval from "./components/FacilityApproval";
 import CheatingRecordForm from "./components/CheatingRecordForm";
 import CheatingList from "./components/CheatingRecordList";
+import ComplaintForm from "./components/ComplaintForm";
+import ComplaintsList from "./components/ComplaintsList";
+import HealthReport from "./components/healthReport";
+import BudgetPage from "./components/BudgetPage";
+import ExpensePage from "./components/ExpensePage";
+import "./App.css";
 
 function App() {
   const [role, setRole] = useState(localStorage.getItem("role"));
@@ -60,10 +66,29 @@ function App() {
         />
 
         <Route path="/facilityBooking" element={<StudentDashboard />} />
-        <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/facilityApproval" element={<FacilityApproval />} />
 
         <Route path="/cheatingAdmin" element={<CheatingRecordForm />} />
         <Route path="/cheatingList" element={<CheatingList />} />
+        <Route path="/budget" element={<BudgetPage />} />
+        <Route path="/expense/:budgetId" element={<ExpensePage />} />
+
+        <Route
+          path="/complaintForm"
+          element={
+            <ComplaintForm
+              onSubmitSuccess={(data) =>
+                console.log("Complaint submitted:", data)
+              }
+            />
+          }
+        />
+        <Route
+          path="/complaintList"
+          element={<ComplaintsList userRole="user" />}
+        />
+
+        <Route path="/healthReport" element={<HealthReport />} />
       </Routes>
     </Router>
   );

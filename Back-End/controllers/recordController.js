@@ -8,20 +8,39 @@ const addRecord = async (req, res) => {
     return res.status(403).json({ message: "Access denied" });
 
   try {
-    const { studentName, reason, proof } = req.body;
+    const {
+      ucid,
+      studentName,
+      reason,
+      dateOfCheating,
+      examination,
 
-    // Validate Base64 format
+      semester,
+      proof,
+
+      subjectName,
+    } = req.body;
+
     if (!proof.startsWith("data:image/")) {
       return res
         .status(400)
         .json({ message: "Invalid proof format. Use Base64." });
     }
 
-    // Convert Base64 to Buffer
-    const base64Data = proof.split(",")[1]; // Remove Base64 prefix
+    const base64Data = proof.split(",")[1];
     const bufferData = Buffer.from(base64Data, "base64");
 
-    const record = new Record({ studentName, reason, proof: bufferData });
+    const record = new Record({
+      ucid,
+      studentName,
+      reason,
+      dateOfCheating,
+      examination,
+      semester,
+      proof: bufferData,
+
+      subjectName,
+    });
     await record.save();
 
     res
@@ -32,21 +51,22 @@ const addRecord = async (req, res) => {
   }
 };
 
-/**
- * Get all records (Public)
- */
 const getAllRecords = async (req, res) => {
   try {
     const records = await Record.find().sort({ createdAt: -1 });
 
-    // Convert Buffer to Base64, ensuring proof exists
     const formattedRecords = records.map((record) => ({
       _id: record._id,
+      ucid: record.ucid,
       studentName: record.studentName,
       reason: record.reason,
       proof: record.proof
         ? `data:image/png;base64,${record.proof.toString("base64")}`
-        : null, // Handle missing proof
+        : null,
+      dateOfCheating: record.dateOfCheating,
+      examination: record.examination,
+      semester: record.semester,
+      subjectName: record.subjectName,
       createdAt: record.createdAt,
     }));
 

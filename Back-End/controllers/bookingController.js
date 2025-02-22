@@ -1,5 +1,36 @@
 const Booking = require("../models/bookingModel");
 const Facility = require("../models/facilityModel");
+const User = require("../models/userModel");
+const nodemailer = require("nodemailer");
+require("dotenv").config();
+// const twilio = require("twilio");
+
+//node emailer setup
+const transporter = nodemailer.createTransport({
+  secure: true,
+  host: "smtp.gmail.com",
+  port: 465,
+
+  auth: {
+    user: "teambraten@gmail.com",
+    pass: "mruiybbmowgvvode",
+  },
+});
+
+// Send Email Notification
+const sendEmail = async (to, subject, text) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: to,
+      subject: subject,
+      html: text,
+    });
+    console.log("✅ Email sent successfully!");
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
+};
 
 // 🟢 Student Requests a Booking
 const requestBooking = async (req, res) => {
@@ -30,6 +61,16 @@ const requestBooking = async (req, res) => {
     });
 
     await newBooking.save();
+    // Get User Details
+    const user = await User.findById(req.user.id);
+
+    // Send Email & SMS Notification to User
+    console.log(user.email);
+    sendEmail(
+      user.email,
+      "Booking Request Received",
+      `Your booking request for ${facility.name} on ${date} at ${timeSlot} is pending approval.`
+    );
     res
       .status(201)
       .json({ message: "Booking request submitted", booking: newBooking });
@@ -50,7 +91,9 @@ const updateBookingStatus = async (req, res) => {
   }
 
   try {
-    const booking = await Booking.findById(req.params.bookingId);
+    const booking = await Booking.findById(req.params.bookingId)
+      .populate("user", "email")
+      .populate("facility", "name");
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
     booking.status = status;
@@ -59,6 +102,15 @@ const updateBookingStatus = async (req, res) => {
     await Facility.findByIdAndUpdate(booking.facility, {
       availability: status !== "Approved",
     });
+
+    // Send Email & SMS Notification to User
+    sendEmail(
+      booking.user.email,
+      `Booking ${status}`,
+      `Your booking for ${booking.facility.name} on ${booking.date} at ${
+        booking.timeSlot
+      } has been ${status.toLowerCase()}.`
+    );
 
     res.json({ message: `Booking ${status.toLowerCase()}`, booking });
   } catch (error) {

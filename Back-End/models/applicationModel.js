@@ -1,30 +1,26 @@
 const mongoose = require("mongoose");
 
 const applicationSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  studentName: { type: String, required: true },
+  email: { type: String, required: true },
+  contactNo: { type: String, required: true },
   type: {
     type: String,
-    enum: ["Event", "Budget", "Sponsorship"],
     required: true,
+    enum: ["Event Organization", "Budget Request", "Sponsorship"],
   },
-  description: { type: String, required: true },
+  eventName: { type: String, required: true },
+  requestedBudget: { type: Number, required: true },
+  justification: { type: String, required: true },
+  supportingDoc: { type: String, default: "" }, // Base64 image or empty
   status: {
     type: String,
-    enum: ["Pending", "Approved", "Rejected"],
     default: "Pending",
+    enum: ["Pending", "Approved", "Rejected"],
   },
-  priority: { type: Number, default: 0 },
-  createdAt: { type: Date, default: Date.now },
+  priority: { type: Number, default: 1 }, // Auto-increases if not reviewed in time
+  submittedAt: { type: Date, default: Date.now },
 });
 
-applicationSchema.pre("save", function (next) {
-  if (this.status === "Pending") {
-    const hoursPassed = Math.floor(
-      (Date.now() - this.createdAt) / (1000 * 60 * 60)
-    );
-    this.priority = hoursPassed;
-  }
-  next();
-});
-
-module.exports = mongoose.model("Application", applicationSchema);
+const Application = mongoose.model("Application", applicationSchema);
+module.exports = Application;

@@ -9,6 +9,10 @@ const pollRoutes = require("./routes/pollRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
 const facilityRoutes = require("./routes/facilityRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
+const healthReportRoutes = require("./routes/healthReportRoutes");
+const leaveRequestRoutes = require("./routes/leaveRequestRoutes");
+const budgetRoutes = require("./routes/budgetRoutes");
+const expenseRoutes = require("./routes/expenseRoutes");
 const slotRoutes = require("./routes/slots");
 const escalatePriorities = require("./utils/escalation");
 const { initializeSocket } = require("./utils/socketService");
@@ -27,11 +31,12 @@ app.use(
   })
 );
 
-const { connectDB } = require("./config/db");
-const { auth, authorize } = require("../middleware/authMiddleware");
-const complaintRoutes = require("./routes/complaintRoutes"); // ✅ Import complaint routes
+// Corrected the relative path to the middleware
+const { auth, authorize } = require("./middleware/authMiddleware");
 
-// Middleware to parse JSON
+const complaintRoutes = require("./routes/complaintRoutes");
+
+// Middleware to parse JSON (note: this is already set above, so it's optional to repeat)
 app.use(express.json());
 
 // Connect to MongoDB
@@ -47,13 +52,15 @@ setInterval(escalatePriorities, 60 * 60 * 1000);
 app.use("/api/auth", authRoutes);
 app.use("/api/polls", pollRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use("/api/budgets", budgetRoutes);
+app.use("/api/expenses", expenseRoutes);
 app.use("/api/facilities", facilityRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/slots", slotRoutes);
 app.use("/api/records", require("./routes/recordRoutes"));
-// Define routes
-app.use("/api/auth", authRoutes);
 app.use("/api/complaints", complaintRoutes);
+app.use("/api/health-reports", healthReportRoutes);
+app.use("/api/leave-requests", leaveRequestRoutes);
 
 const port = 8000;
 app.listen(port, () => {

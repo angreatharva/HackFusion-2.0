@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/commonNavBar";
+import Sidebar from "../components/sideBar";
 
 const Home = () => {
   const [userInfo, setUserInfo] = useState({ name: "", role: "" });
@@ -41,32 +42,11 @@ const Home = () => {
     <div className="home-container">
       {/* Navbar is already included here */}
       <Navbar userInfo={userInfo} />
+      {/* <Sidebar userInfo={userInfo} /> */}
 
       <div className="content">
         <h2>Welcome, {userInfo.name}!</h2>
         <p>Your role: {userInfo.role}</p>
-        Conditional rendering for voting button
-        {userInfo.role === "student" && (
-          <button
-            className="voting-button"
-            onClick={() => {
-              navigate("/pollsList");
-            }}
-          >
-            Go to Voting
-          </button>
-        )}
-        {/* Display admin button for admins */}
-        {userInfo.role === "admin" && (
-          <button
-            className="voting-button"
-            onClick={() => {
-              navigate("/create-poll");
-            }}
-          >
-            Create Poll
-          </button>
-        )}
       </div>
 
       <style>{`
