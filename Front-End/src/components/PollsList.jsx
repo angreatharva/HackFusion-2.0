@@ -1,12 +1,73 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/commonNavBar";
 import { useNavigate } from "react-router-dom";
-import { decryptData } from "../utils/encryption"; // Ensure this path matches your project structure
+import { decryptData } from "../utils/encryption";
+import { Bar } from "react-chartjs-2";
+import "animate.css";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const POLLING_INTERVAL = 5000;
 const VOTE_API = "http://localhost:8000/api/polls/vote";
 const POLLS_API = "http://localhost:8000/api/polls/allPolls";
-const POLL_STATS_API = "http://localhost:8000/api/polls";
+
+const PollResultChart = ({ poll }) => {
+  const labels = poll.options.map((option) => option.option);
+  const dataValues = poll.options.map((option) => option.votes);
+
+  const chartData = {
+    labels,
+    datasets: [
+      {
+        label: "Votes",
+        data: dataValues,
+        backgroundColor: "rgba(75, 192, 192, 0.6)",
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const options = {
+    animation: {
+      duration: 1000,
+      easing: "easeInOutQuad",
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: { beginAtZero: true },
+    },
+  };
+
+  return (
+    <div
+      style={{
+        height: "300px",
+        borderRadius: "12px",
+        boxShadow: "0 8px 16px rgba(0, 0, 0, 0.1)",
+      }}
+      className="mt-3 animate__animated animate__fadeInUp"
+    >
+      <Bar data={chartData} options={options} />
+    </div>
+  );
+};
 
 const PollsList = () => {
   const [userInfo, setUserInfo] = useState({ name: "", role: "", gender: "" });
@@ -20,7 +81,6 @@ const PollsList = () => {
   const [errorMessage, setErrorMessage] = useState({});
   const [successMessage, setSuccessMessage] = useState({});
   const [isVoting, setIsVoting] = useState(false);
-  const [pollStats, setPollStats] = useState({});
 
   useEffect(() => {
     const tabId = sessionStorage.getItem("tabId");
@@ -32,12 +92,10 @@ const PollsList = () => {
     if (!storedToken) {
       navigate("/");
     } else {
-      // Decrypt stored user data
-      const name = decryptData(encryptedName);
-      const role = decryptData(encryptedRole);
-      const gender = decryptData(encryptedGender);
+      const name = localStorage.getItem(`name_${tabId}`);
+      const role = localStorage.getItem(`role_${tabId}`);
 
-      setUserInfo({ name, role, gender });
+      setUserInfo({ name, role });
       setToken(storedToken);
     }
   }, [navigate]);
@@ -49,23 +107,17 @@ const PollsList = () => {
       const response = await fetch(POLLS_API, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       if (!response.ok) throw new Error("Failed to fetch polls");
 
       const data = await response.json();
       setPolls(data);
 
-      // Fetch stats for expired polls
-      data.forEach((poll) => {
-        if (!poll.isActive && !pollStats[poll._id]) {
-          fetchPollStats(poll._id);
-        }
-      });
-
-      // Track voted polls
       const voted = {};
       data.forEach((poll) => {
-        if (poll.votedOptionIndex !== undefined) {
+        if (
+          poll.votedOptionIndex !== null &&
+          poll.votedOptionIndex !== undefined
+        ) {
           voted[poll._id] = poll.votedOptionIndex;
         }
       });
@@ -74,18 +126,6 @@ const PollsList = () => {
       console.error("Error fetching polls:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchPollStats = async (pollId) => {
-    try {
-      const response = await fetch(`${POLL_STATS_API}/${pollId}/stats`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setPollStats((prev) => ({ ...prev, [pollId]: data }));
-    } catch (error) {
-      console.error("Error fetching stats:", error);
     }
   };
 
@@ -129,10 +169,7 @@ const PollsList = () => {
   };
 
   const handleConfirmation = async (pollId, isConfirmed) => {
-    setShowConfirmation((prev) => ({
-      ...prev,
-      [pollId]: false,
-    }));
+    setShowConfirmation((prev) => ({ ...prev, [pollId]: false }));
 
     if (isConfirmed) {
       setIsVoting(true);
@@ -149,33 +186,40 @@ const PollsList = () => {
           }),
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to submit vote");
+          throw new Error(data.message || "Failed to submit vote");
         }
+
+        setVotedPolls((prev) => ({
+          ...prev,
+          [pollId]: data.votedOptionIndex,
+        }));
 
         setSuccessMessage((prev) => ({
           ...prev,
           [pollId]: "✅ Vote submitted successfully!",
         }));
-        setVotedPolls((prev) => ({
-          ...prev,
-          [pollId]: selectedOptions[pollId],
-        }));
+
+        await fetchPolls();
+        setTimeout(fetchPolls, 300);
       } catch (error) {
         setErrorMessage((prev) => ({
           ...prev,
           [pollId]: error.message || "Error submitting vote. Please try again.",
         }));
+        setVotedPolls((prev) => {
+          const newState = { ...prev };
+          delete newState[pollId];
+          return newState;
+        });
       } finally {
         setIsVoting(false);
       }
     }
 
-    setSelectedOptions((prev) => ({
-      ...prev,
-      [pollId]: null,
-    }));
+    setSelectedOptions((prev) => ({ ...prev, [pollId]: null }));
   };
 
   const CountdownTimer = ({ expiresAt, isActive }) => {
@@ -209,54 +253,6 @@ const PollsList = () => {
     );
   };
 
-  const GenderStats = ({ stats }) => (
-    <div className="mt-4">
-      <h5 className="mb-3">📊 Voting Statistics</h5>
-      <div className="row g-3">
-        <div className="col-md-4">
-          <div className="card text-white bg-primary">
-            <div className="card-header">Male Voters</div>
-            <div className="card-body">
-              <p className="card-text">
-                Voted: {stats.voted.male}
-                <br />
-                Didn't Vote: {stats.nonVoters.male}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4">
-          <div className="card text-white bg-success">
-            <div className="card-header">Female Voters</div>
-            <div className="card-body">
-              <p className="card-text">
-                Voted: {stats.voted.female}
-                <br />
-                Didn't Vote: {stats.nonVoters.female}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4">
-          <div className="card text-white bg-info">
-            <div className="card-header">Other Voters</div>
-            <div className="card-body">
-              <p className="card-text">
-                Voted: {stats.voted.other}
-                <br />
-                Didn't Vote: {stats.nonVoters.other}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="mt-3 text-center text-muted small">
-        Total Eligible Voters: {stats.eligible.total} | Total Votes Cast:{" "}
-        {stats.voted.total}
-      </div>
-    </div>
-  );
-
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center min-vh-100">
@@ -274,46 +270,81 @@ const PollsList = () => {
       <div className="row g-4">
         {polls.map((poll) => {
           const isPollExpired = !poll.isActive;
+          const userVotedOptionIndex = votedPolls[poll._id];
+          const userVotedOption =
+            userVotedOptionIndex !== undefined
+              ? poll.options[userVotedOptionIndex]?.option
+              : null;
 
           return (
-            <div className="col-md-6" key={poll._id}>
-              <div className="card h-100 shadow-sm hover-scale">
-                <div className="card-body">
-                  <h3 className="card-title h5 mb-3">📊 {poll.question}</h3>
+            <div key={poll._id} className="col-md-6 col-lg-4">
+              <div
+                className="card h-100 shadow-lg border-0 rounded-3 hover-scale animate__animated animate__fadeInUp"
+                style={{
+                  background: "#f7f8fc",
+                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                }}
+              >
+                <div className="card-body p-4">
+                  <h3 className="card-title h5 mb-3 text-primary">
+                    {poll.question}
+                  </h3>
+
+                  <div className="list-group">
+                    {poll.options.map((option, index) => (
+                      <button
+                        key={index}
+                        className="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-pill mb-2"
+                        style={{
+                          backgroundColor: "#fff",
+                          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                        }}
+                        onClick={() => handleOptionClick(poll._id, index)}
+                        disabled={
+                          isPollExpired || votedPolls[poll._id] !== undefined
+                        }
+                      >
+                        {option.option}
+                        {/* Show vote count only if the poll is expired */}
+                        {isPollExpired && (
+                          <span className="badge bg-primary rounded-pill">
+                            {option.votes} votes
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
 
                   {errorMessage[poll._id] && (
-                    <div className="alert alert-danger d-flex align-items-center">
-                      <span className="me-2">⚠️</span>
+                    <div className="text-danger mt-2">
                       {errorMessage[poll._id]}
-                      <button
-                        type="button"
-                        className="btn-close ms-auto"
-                        onClick={() =>
-                          setErrorMessage((prev) => ({
-                            ...prev,
-                            [poll._id]: null,
-                          }))
-                        }
-                        aria-label="Close"
-                      ></button>
                     </div>
                   )}
 
                   {successMessage[poll._id] && (
-                    <div className="alert alert-success d-flex align-items-center">
-                      <span className="me-2">🎉</span>
+                    <div className="text-success mt-2">
                       {successMessage[poll._id]}
-                      <button
-                        type="button"
-                        className="btn-close ms-auto"
-                        onClick={() =>
-                          setSuccessMessage((prev) => ({
-                            ...prev,
-                            [poll._id]: null,
-                          }))
-                        }
-                        aria-label="Close"
-                      ></button>
+                    </div>
+                  )}
+
+                  {showConfirmation[poll._id] && (
+                    <div className="mt-3">
+                      <p>Are you sure you want to vote for this option?</p>
+                      <div className="d-flex justify-content-between">
+                        <button
+                          className="btn btn-danger"
+                          onClick={() => handleConfirmation(poll._id, false)}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className="btn btn-success"
+                          onClick={() => handleConfirmation(poll._id, true)}
+                          disabled={isVoting}
+                        >
+                          {isVoting ? "Voting..." : "Confirm Vote"}
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -321,79 +352,19 @@ const PollsList = () => {
                     expiresAt={poll.expiresAt}
                     isActive={poll.isActive}
                   />
+                </div>
 
-                  <ul className="list-unstyled mb-3">
-                    {poll.options.map((option, index) => (
-                      <li
-                        key={option._id}
-                        className={`mb-3 ${
-                          votedPolls[poll._id] !== undefined || isPollExpired
-                            ? "pe-none opacity-50"
-                            : "cursor-pointer"
-                        } ${
-                          selectedOptions[poll._id] === index ||
-                          votedPolls[poll._id] === index
-                            ? "bg-success text-white"
-                            : "bg-light"
-                        } p-3 rounded position-relative`}
-                        onClick={() => handleOptionClick(poll._id, index)}
-                      >
-                        <div className="d-flex align-items-center justify-content-between">
-                          <div className="d-flex align-items-center">
-                            <span className="me-2">🗳️</span>
-                            {option.option}
-                            {votedPolls[poll._id] === index && (
-                              <span className="badge bg-primary ms-2">
-                                ✔ Voted
-                              </span>
-                            )}
-                          </div>
-                          {isPollExpired && (
-                            <span className="badge bg-secondary">
-                              Votes: {option.votes}
-                            </span>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {showConfirmation[poll._id] &&
-                    selectedOptions[poll._id] !== null && (
-                      <div className="alert alert-info">
-                        <p className="mb-2">
-                          <strong>✨ You selected: </strong>
-                          {poll.options[selectedOptions[poll._id]].option}
-                        </p>
-                        <p className="mb-0">
-                          Is this your final choice?
-                          <button
-                            className="btn btn-success btn-sm ms-2"
-                            onClick={() => handleConfirmation(poll._id, true)}
-                            disabled={isVoting || isPollExpired}
-                          >
-                            {isVoting ? "⏳ Submitting..." : "✅ Yes"}
-                          </button>
-                          <button
-                            className="btn btn-danger btn-sm ms-2"
-                            onClick={() => handleConfirmation(poll._id, false)}
-                            disabled={isVoting || isPollExpired}
-                          >
-                            ❌ No
-                          </button>
-                        </p>
+                {/* Render PollResultChart and user's voted option only if the poll is expired */}
+                {isPollExpired && (
+                  <>
+                    <PollResultChart poll={poll} />
+                    {userVotedOption && (
+                      <div className="text-center mt-3 p-3 bg-light border-top">
+                        <strong>Your Vote:</strong> {userVotedOption}
                       </div>
                     )}
-
-                  {pollStats[poll._id] && isPollExpired && (
-                    <GenderStats stats={pollStats[poll._id]} />
-                  )}
-
-                  <p className="card-text text-muted small">
-                    👤 Created by: {poll.createdBy.name} on{" "}
-                    {new Date(poll.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
+                  </>
+                )}
               </div>
             </div>
           );

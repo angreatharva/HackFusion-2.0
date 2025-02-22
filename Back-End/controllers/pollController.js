@@ -1,4 +1,5 @@
 // controllers/pollController.js
+const mongoose = require("mongoose"); // Add this line at the top
 const Poll = require("../models/pollModel");
 const User = require("../models/userModel");
 
@@ -45,11 +46,30 @@ const getPolls = async (req, res) => {
 
 // Vote for a poll
 const vote = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    const poll = await Poll.findById(req.body.pollId);
-    const user = await User.findById(req.user.id);
+    const poll = await Poll.findById(req.body.pollId).session(session);
+    const user = await User.findById(req.user.id).session(session);
 
-    // Record vote with gender
+    // Check if user already voted
+    const existingVote = poll.votes.find((v) => v.user.equals(user._id));
+    if (existingVote) {
+      await session.abortTransaction();
+      session.endSession();
+      return res
+        .status(400)
+        .json({ message: "You have already voted in this poll" });
+    }
+
+    // Check if poll is active
+    if (!poll.isActive) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: "This poll has expired" });
+    }
+
+    // Record vote
     poll.votes.push({
       user: user._id,
       optionIndex: req.body.optionIndex,
@@ -57,17 +77,30 @@ const vote = async (req, res) => {
     });
 
     poll.options[req.body.optionIndex].votes++;
-    await poll.save();
 
+    // Update user's voted polls
+    if (user.votedPolls.includes(poll._id)) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: "You have already voted" });
+    }
     user.votedPolls.push(poll._id);
-    await user.save();
 
-    res.json({ message: "Vote recorded successfully" });
+    await poll.save({ session });
+    await user.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+
+    res.json({
+      message: "Vote recorded successfully",
+      votedOptionIndex: req.body.optionIndex,
+    });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     res.status(500).json({ message: "Error recording vote" });
   }
 };
-
 const getPollStats = async (req, res) => {
   try {
     const poll = await Poll.findById(req.params.pollId).populate(

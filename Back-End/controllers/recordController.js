@@ -1,16 +1,47 @@
 const Record = require("../models/recordModel");
+const nodemailer = require("nodemailer");
+require("dotenv").config();
 
 /**
  * Add a new record (Admin Only)
  */
+// send email
+const transporter = nodemailer.createTransport({
+  secure: true,
+  host: "smtp.gmail.com",
+  port: 465,
+
+  auth: {
+    user: "teambraten@gmail.com",
+    pass: "mruiybbmowgvvode",
+  },
+});
+
+// Send Email Notification
+const sendEmail = async (to, subject, text) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: to,
+      subject: subject,
+      html: text,
+    });
+    console.log("✅ Email sent successfully!");
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
+};
+
+// add record
 const addRecord = async (req, res) => {
-  if (req.user.role !== "invigilator")
+  if (req.user.role !== "admin")
     return res.status(403).json({ message: "Access denied" });
 
   try {
     const {
       ucid,
       studentName,
+      email,
       reason,
       dateOfCheating,
       examination,
@@ -33,6 +64,7 @@ const addRecord = async (req, res) => {
     const record = new Record({
       ucid,
       studentName,
+      email,
       reason,
       dateOfCheating,
       examination,
@@ -42,6 +74,17 @@ const addRecord = async (req, res) => {
       subjectName,
     });
     await record.save();
+    // Send email notification to student
+    const emailText = `Dear ${studentName},\n\n
+      You have been reported for cheating in the ${examination} examination.\n
+      - Subject: ${subjectName}\n
+      - Semester: ${semester}\n
+      - Reason: ${reason}\n
+      - Date: ${dateOfCheating}\n\n
+      If you believe this is a mistake, please contact the academic office.\n
+      Regards,\nAcademic Integrity Committee`;
+
+    await sendEmail(email, "Cheating Record Notification", emailText);
 
     res
       .status(201)

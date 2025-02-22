@@ -40,9 +40,8 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      {/* Navbar is already included here */}
       <Navbar userInfo={userInfo} />
-      {/* <Sidebar userInfo={userInfo} /> */}
+      <Sidebar userInfo={userInfo} />
 
       <div className="content">
         <h2>Welcome, {userInfo.name}!</h2>
