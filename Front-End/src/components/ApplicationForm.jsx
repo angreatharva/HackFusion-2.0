@@ -1,105 +1,235 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const ApplicationForm = ({ fetchApplications }) => {
+const ApplicationForm = ({ onApplicationSubmit }) => {
   const [formData, setFormData] = useState({
-    name: "",
-    type: "Event",
-    description: "",
+    studentName: "",
+    email: "",
+    contactNo: "",
+    type: "Event Organization",
+    eventName: "",
+    requestedBudget: "",
+    justification: "",
+    supportingDoc: "",
   });
 
-  // Hardcoded Token (For Now)
-  // const token =
-  //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjdiNDMxYTBmNGRkYzVjOGU5MTQwOGI4Iiwicm9sZSI6ImFkbWluIn0sImlhdCI6MTczOTk0ODgwMSwiZXhwIjoxNzQwMDM1MjAxfQ.7vowjcvS9TgpxbIRvvaM5CxbxyVrJVj1ALUZ0f6CYcU";
+  const navigate = useNavigate();
+  const [token, setToken] = useState("");
 
-  // Uncomment below to use token from localStorage
+  useEffect(() => {
+    const tabId = sessionStorage.getItem("tabId");
+    const storedToken = localStorage.getItem(`authToken_${tabId}`);
 
-  const tabId = sessionStorage.getItem("tabId") || Date.now();
-  sessionStorage.setItem("tabId", tabId);
-
-  const token = localStorage.getItem(`authToken_${tabId}`) || "";
+    if (!storedToken) {
+      navigate("/");
+    } else {
+      setToken(storedToken);
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        setFormData({ ...formData, supportingDoc: reader.result });
+      };
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!token) return alert("Unauthorized: Please log in again.");
+
     try {
-      await axios.post("http://localhost:8000/api/applications", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await axios.post(
+        "http://localhost:8000/api/applications",
+        { ...formData, priority: 1 },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert("Application submitted successfully!");
+      setFormData({
+        studentName: "",
+        email: "",
+        contactNo: "",
+        type: "Event Organization",
+        eventName: "",
+        requestedBudget: "",
+        justification: "",
+        supportingDoc: "",
       });
-      fetchApplications();
-      setFormData({ name: "", type: "Event", description: "" });
+
+      if (onApplicationSubmit) {
+        onApplicationSubmit();
+      }
     } catch (error) {
       console.error("Error submitting application:", error);
+      alert("Failed to submit application.");
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-lg bg-white shadow-xl rounded-2xl p-8 space-y-6 border border-gray-200"
-      >
-        <h2 className="text-3xl font-bold text-center text-gray-800">
-          Submit Application
-        </h2>
+    <div className="application-container">
+      <h2 className="title">📜 Submit Application</h2>
 
-        {/* Name Input */}
-        <div className="flex flex-col">
-          <label className="text-gray-600 font-medium mb-1">Your Name</label>
+      <div className="form-box">
+        <form onSubmit={handleSubmit} className="application-form">
           <input
             type="text"
-            name="name"
-            placeholder="Enter your name"
-            value={formData.name}
+            name="studentName"
+            placeholder="👤 Student Name"
+            value={formData.studentName}
             onChange={handleChange}
-            className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+            className="input-field"
             required
           />
-        </div>
 
-        {/* Application Type */}
-        <div className="flex flex-col">
-          <label className="text-gray-600 font-medium mb-1">
-            Application Type
-          </label>
+          <input
+            type="email"
+            name="email"
+            placeholder="📧 Email ID"
+            value={formData.email}
+            onChange={handleChange}
+            className="input-field"
+            required
+          />
+
+          <input
+            type="tel"
+            name="contactNo"
+            placeholder="📞 Contact No"
+            value={formData.contactNo}
+            onChange={handleChange}
+            className="input-field"
+            required
+          />
+
           <select
             name="type"
             value={formData.type}
             onChange={handleChange}
-            className="p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+            className="input-field"
           >
-            <option value="Event">Event</option>
-            <option value="Budget">Budget</option>
-            <option value="Sponsorship">Sponsorship</option>
+            <option value="Event Organization">🎉 Event Organization</option>
+            <option value="Budget Request">💰 Budget Request</option>
+            <option value="Sponsorship">🤝 Sponsorship</option>
           </select>
-        </div>
 
-        {/* Description */}
-        <div className="flex flex-col">
-          <label className="text-gray-600 font-medium mb-1">Description</label>
-          <textarea
-            name="description"
-            placeholder="Enter a brief description..."
-            value={formData.description}
+          <input
+            type="text"
+            name="eventName"
+            placeholder="📌 Event/Project Name"
+            value={formData.eventName}
             onChange={handleChange}
-            className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none h-32 transition-all"
+            className="input-field"
             required
           />
-        </div>
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 rounded-lg text-lg font-medium shadow-md hover:shadow-lg transition-transform transform hover:scale-105"
-        >
-          Submit Application
-        </button>
-      </form>
+          <input
+            type="number"
+            name="requestedBudget"
+            placeholder="💵 Requested Budget"
+            value={formData.requestedBudget}
+            onChange={handleChange}
+            className="input-field"
+            required
+          />
+
+          <textarea
+            name="justification"
+            placeholder="✍️ Justification/Details"
+            value={formData.justification}
+            onChange={handleChange}
+            className="input-field textarea"
+            required
+          ></textarea>
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="file-input"
+          />
+
+          <button type="submit" className="submit-btn">🚀 Submit Application</button>
+        </form>
+      </div>
+
+      <style>
+        {`
+          .application-container {
+            max-width: 700px;
+            margin: auto;
+            padding: 20px;
+          }
+          .title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+          }
+          .form-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+          }
+          .application-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          }
+          .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            color: #374151;
+            outline: none;
+            transition: 0.3s;
+          }
+          .input-field:focus {
+            border-color: #facc15;
+            box-shadow: 0 0 8px rgba(250, 204, 21, 0.5);
+          }
+          .textarea {
+            height: 80px;
+            resize: none;
+          }
+          .file-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+          }
+          .submit-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            background-color: #facc15;
+            color: #1e293b;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+          }
+          .submit-btn:hover {
+            background-color: #eab308;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(250, 204, 21, 0.4);
+          }
+        `}
+      </style>
     </div>
   );
 };

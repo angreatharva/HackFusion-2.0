@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getPolls } from "../api/poll";
+import Navbar from "../components/commonNavBar";
+import { useNavigate } from "react-router-dom";
 
 const calculatePercentage = (votes, totalVotes) => {
   return totalVotes ? (votes / totalVotes) * 100 : 0;
@@ -7,7 +9,28 @@ const calculatePercentage = (votes, totalVotes) => {
 
 const POLLING_INTERVAL = 5000; // 5 seconds
 
-const PollsList = ({ token }) => {
+const PollsList = () => {
+  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+  const [token, setToken] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get the unique tab identifier
+    const tabId = sessionStorage.getItem("tabId");
+    const storedToken = localStorage.getItem(`authToken_${tabId}`);
+    const name = localStorage.getItem(`name_${tabId}`);
+    const role = localStorage.getItem(`role_${tabId}`);
+
+    // If token does not exist, navigate to login page
+    if (!storedToken) {
+      navigate("/");
+    } else {
+      // Set the user info (name, role) and token into the state
+      setUserInfo({ name, role });
+      setToken(storedToken);
+    }
+  }, [navigate]);
+
   const [polls, setPolls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOptions, setSelectedOptions] = useState({});
@@ -17,6 +40,8 @@ const PollsList = ({ token }) => {
   const [debugMode, setDebugMode] = useState(false);
 
   const fetchPolls = async () => {
+    if (!token) return; // Don't fetch if token isn't available
+
     try {
       const data = await getPolls(token);
       setPolls(data);
@@ -32,9 +57,11 @@ const PollsList = ({ token }) => {
   };
 
   useEffect(() => {
-    fetchPolls();
-    const intervalId = setInterval(fetchPolls, POLLING_INTERVAL);
-    return () => clearInterval(intervalId);
+    if (token) {
+      fetchPolls();
+      const intervalId = setInterval(fetchPolls, POLLING_INTERVAL);
+      return () => clearInterval(intervalId);
+    }
   }, [token]);
 
   const handleOptionClick = (pollId, option) => {
@@ -123,28 +150,7 @@ const PollsList = ({ token }) => {
 
   return (
     <div className="polls-container">
-      <div className="debug-controls">
-        <button
-          onClick={() => setDebugMode(!debugMode)}
-          className="debug-toggle"
-        >
-          {debugMode ? "Hide Debug Info" : "Show Debug Info"}
-        </button>
-        {debugMode && (
-          <div className="debug-info">
-            <p>
-              Last Updated:{" "}
-              {lastUpdated ? lastUpdated.toLocaleTimeString() : "Never"}
-            </p>
-            <p>Poll Count: {polls.length}</p>
-            <p>Update Interval: {POLLING_INTERVAL / 1000}s</p>
-            <button onClick={fetchPolls} className="debug-refresh">
-              Manual Refresh
-            </button>
-          </div>
-        )}
-      </div>
-
+      <Navbar userInfo={userInfo} />
       <h2>All Polls</h2>
       <div className="polls-grid">
         {polls.map((poll) => {
@@ -215,7 +221,7 @@ const PollsList = ({ token }) => {
 
       <style>{`
         .polls-container {
-          max-width: 90%;
+          // max-width: 90%;
           margin: 20px auto;
           padding: 20px;
         }

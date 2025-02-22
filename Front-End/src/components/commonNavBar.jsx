@@ -17,15 +17,33 @@ const Navbar = ({ userInfo }) => {
       </div>
 
       <div className="navbar-right">
-        {/* Budget button - always visible */}
+        {userInfo.role === "doctor" && (
+          <button
+            className="navbar-button"
+            onClick={() => {
+              navigate("/healthReport");
+            }}
+          >
+            Health Report
+          </button>
+        )}
 
         <button
           className="navbar-button"
           onClick={() => {
-            navigate("/applicationForm");
+            navigate("/complaintForm");
           }}
         >
-          Applications
+          Complaint Form
+        </button>
+
+        <button
+          className="navbar-button"
+          onClick={() => {
+            navigate("/complaintList");
+          }}
+        >
+          Complaint List
         </button>
 
         <button
@@ -36,16 +54,65 @@ const Navbar = ({ userInfo }) => {
         >
           Budget
         </button>
+        {userInfo.role === "admin" && (
+          <button
+            className="navbar-button"
+            onClick={() => {
+              navigate("/facilityApproval");
+            }}
+          >
+            Facility Approval
+          </button>
+        )}
 
-        {/* Check-Up button - always visible */}
         <button
           className="navbar-button"
           onClick={() => {
-            navigate("/check-up");
+            navigate("/cheatingList");
           }}
         >
-          Check-Up
+          Cheating List
         </button>
+
+        {userInfo.role === "admin" && (
+          <button
+            className="navbar-button"
+            onClick={() => {
+              navigate("/cheatingAdmin");
+            }}
+          >
+            Cheating Admin
+          </button>
+        )}
+
+        <button
+          className="navbar-button"
+          onClick={() => {
+            navigate("/facilityBooking");
+          }}
+        >
+          Facility Booking
+        </button>
+
+        <button
+          className="navbar-button"
+          onClick={() => {
+            navigate("/applicationList");
+          }}
+        >
+          Applications List
+        </button>
+
+        {userInfo.role === "student" && (
+          <button
+            className="navbar-button"
+            onClick={() => {
+              navigate("/applicationForm");
+            }}
+          >
+            Applications Form
+          </button>
+        )}
 
         {/* Conditional rendering for the buttons */}
         {userInfo.role === "student" && (

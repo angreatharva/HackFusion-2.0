@@ -1,10 +1,12 @@
-const Application = require("../models/Application");
+const Application = require("../models/applicationModel");
 
 const escalatePriorities = async () => {
   try {
     const pendingApps = await Application.find({ status: "Pending" });
     for (let app of pendingApps) {
-      const hoursPassed = Math.floor((Date.now() - app.createdAt) / (1000 * 60 * 60));
+      const hoursPassed = Math.floor(
+        (Date.now() - app.createdAt) / (1000 * 60 * 60)
+      );
       app.priority = hoursPassed;
       await app.save();
     }

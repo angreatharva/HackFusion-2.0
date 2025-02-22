@@ -5,7 +5,15 @@ const crypto = require("crypto");
 
 // Register API
 const register = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const {
+    name,
+    email,
+    password,
+    role,
+    studentDetails,
+    doctorDetails,
+    coordinatorDetails,
+  } = req.body;
   try {
     // Validate email domain (in case client bypasses front-end validation)
     if (!email.toLowerCase().endsWith("@spit.ac.in")) {
@@ -24,13 +32,25 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new user (default role is student if not provided)
-    await User.create({
+    // Prepare new user data
+    const newUserData = {
       name,
       email,
       password: hashedPassword,
       role: role || "student",
-    });
+    };
+
+    // Conditionally add role-specific details
+    if (newUserData.role === "student") {
+      newUserData.studentDetails = studentDetails;
+    } else if (newUserData.role === "doctor") {
+      newUserData.doctorDetails = doctorDetails;
+    } else if (newUserData.role === "coordinator") {
+      newUserData.coordinatorDetails = coordinatorDetails;
+    }
+
+    // Create new user
+    await User.create(newUserData);
 
     return res.status(201).json({ message: "User registered successfully." });
   } catch (error) {

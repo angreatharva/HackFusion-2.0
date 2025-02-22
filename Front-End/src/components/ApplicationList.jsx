@@ -1,272 +1,231 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/commonNavBar";
+import axios from "axios";
 
 const ApplicationList = () => {
-  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+  const [applications, setApplications] = useState([]);
+  const [token, setToken] = useState("");
+  const [role, setRole] = useState("");
   const navigate = useNavigate();
 
-  const tabId = sessionStorage.getItem("tabId") || Date.now();
-  sessionStorage.setItem("tabId", tabId);
-  const token = localStorage.getItem(`authToken_${tabId}`);
-
   useEffect(() => {
-    const name = localStorage.getItem(`name_${tabId}`);
-    const role = localStorage.getItem(`role_${tabId}`);
+    const tabId = sessionStorage.getItem("tabId");
+    const storedToken = localStorage.getItem(`authToken_${tabId}`);
+    const storedRole = localStorage.getItem(`role_${tabId}`);
 
-    if (!token) {
+    if (!storedToken) {
       navigate("/");
     } else {
-      setUserInfo({ name, role });
+      setToken(storedToken);
+      setRole(storedRole);
+      fetchApplications(storedToken);
     }
-  }, [navigate, token, tabId]);
 
-  const fetchApplications = async () => {
+    const interval = setInterval(() => {
+      fetchApplications(storedToken);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [navigate]);
+
+  const fetchApplications = async (authToken) => {
     try {
-      const res = await axios.get("http://localhost:8000/api/applications", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await axios.get("http://localhost:8000/api/applications", {
+        headers: { Authorization: `Bearer ${authToken}` },
       });
-      setApplications(res.data);
+      setApplications(response.data);
     } catch (error) {
       console.error("Error fetching applications:", error);
     }
   };
 
-  useEffect(() => {
-    fetchApplications();
-    const intervalId = setInterval(fetchApplications, 2000);
-    return () => clearInterval(intervalId);
-  }, []);
-
-  const handleApproval = async (id, status) => {
+  const handleAction = async (id, status) => {
     try {
       await axios.put(
         `http://localhost:8000/api/applications/${id}`,
         { status },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      fetchApplications();
+      fetchApplications(token);
     } catch (error) {
       console.error("Error updating application:", error);
     }
   };
 
   return (
-    <div className="app-container">
+    <div className="p-6 min-h-screen bg-gray-50">
       <style>
         {`
-          .app-container {
-            min-height: 100vh;
-            background: #f5f5f5;
+          .custom-container {
+            max-width: 1100px;
+            margin: auto;
           }
-
-          .app-header {
+          .custom-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
             text-align: center;
-            margin-bottom: 2rem;
           }
-
-          .app-title {
-            color: #333;
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            position: relative;
-            display: inline-block;
+          @media (min-width: 640px) {
+            .custom-header {
+              flex-direction: row;
+              text-align: left;
+            }
           }
-
-          .app-title:after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 4px;
-            background: #4CAF50;
-            border-radius: 2px;
+          .custom-button {
+            background: #3b82f6;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: 0.3s;
+            border: none;
           }
-
-          .app-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
+          .custom-button:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
           }
-
-          .app-card {
+          .custom-card {
             background: white;
             border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            border: 1px solid #e0e0e0;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e5e7eb;
+            transition: 0.3s;
           }
-
-          .app-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+          .custom-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
           }
-
-          .app-card-header {
-            margin-bottom: 1rem;
+          .custom-status {
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
           }
-
-          .app-card-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 0.5rem;
-          }
-
-          .app-type {
-            color: #4CAF50;
-            font-weight: 500;
-          }
-
-          .app-description {
-            color: #666;
-            margin-bottom: 1rem;
-            line-height: 1.5;
-          }
-
-          .status-badge {
-            display: inline-block;
-            padding: 0.4rem 1rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 500;
-          }
-
           .status-pending {
-            background: #FFF3E0;
-            color: #F57C00;
+            background: #facc15;
+            color: #1e293b;
           }
-
           .status-approved {
-            background: #E8F5E9;
-            color: #4CAF50;
+            background: #22c55e;
+            color: white;
           }
-
           .status-rejected {
-            background: #FFEBEE;
-            color: #D32F2F;
+            background: #ef4444;
+            color: white;
           }
-
-          .action-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-          }
-
-          .btn {
-            flex: 1;
-            padding: 0.6rem 1rem;
-            border: none;
+          .custom-image-container {
+            width: 80px;
+            height: 80px;
             border-radius: 8px;
-            font-weight: 500;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+          }
+          .custom-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+          .custom-actions button {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            transition: 0.3s;
             cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
           }
-
-          .btn-approve {
-            background: #4CAF50;
+          .approve-button {
+            background: #22c55e;
             color: white;
           }
-
-          .btn-approve:hover {
-            background: #43A047;
-            transform: translateY(-2px);
+          .approve-button:hover {
+            background: #16a34a;
           }
-
-          .btn-reject {
-            background: #FF5252;
+          .reject-button {
+            background: #ef4444;
             color: white;
           }
-
-          .btn-reject:hover {
-            background: #D32F2F;
-            transform: translateY(-2px);
-          }
-
-          .empty-state {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 2rem;
-            color: #666;
-            font-size: 1.1rem;
-          }
-
-          @media (max-width: 768px) {
-            .app-grid {
-              grid-template-columns: 1fr;
-            }
-
-            .app-title {
-              font-size: 2rem;
-            }
+          .reject-button:hover {
+            background: #dc2626;
           }
         `}
       </style>
-      <Navbar userInfo={userInfo} />
-      <header className="app-header">
-        <h2 className="app-title">Application List</h2>
-      </header>
-      <div className="app-grid">
-        {applications.length > 0 ? (
-          applications.map((app) => (
-            <div key={app._id} className="app-card">
-              <div className="app-card-header">
-                <h3 className="app-card-title">
-                  {app.name} - <span className="app-type">{app.type}</span>
-                </h3>
-              </div>
-              <p className="app-description">{app.description}</p>
-              <div>
-                Status:{" "}
-                <span
-                  className={`status-badge ${
-                    app.status === "Pending"
-                      ? "status-pending"
-                      : app.status === "Approved"
-                      ? "status-approved"
-                      : "status-rejected"
-                  }`}
-                >
-                  {app.status}
-                </span>
-              </div>
 
-              {userInfo.role === "admin" && app.status === "Pending" && (
-                <div className="action-buttons">
-                  <button
-                    onClick={() => handleApproval(app._id, "Approved")}
-                    className="btn btn-approve"
+      <div className="custom-container">
+        {/* Header Section */}
+        <div className="custom-header mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800">📋 Application List</h2>
+          <button onClick={() => navigate("/ApplicationForm")} className="custom-button">
+            ➕ Submit a Form
+          </button>
+        </div>
+
+        {/* Grid Layout - 2 Cards Per Row on Desktop, 1 on Mobile */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {applications.length > 0 ? (
+            applications.map((app) => (
+              <div key={app._id} className="custom-card">
+                {/* Top Section */}
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800">🆔 {app._id.slice(-6)}</h3>
+                  <span
+                    className={`custom-status ${
+                      app.status === "Approved"
+                        ? "status-approved"
+                        : app.status === "Rejected"
+                        ? "status-rejected"
+                        : "status-pending"
+                    }`}
                   >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => handleApproval(app._id, "Rejected")}
-                    className="btn btn-reject"
-                  >
-                    Reject
-                  </button>
+                    {app.status}
+                  </span>
                 </div>
-              )}
-            </div>
-          ))
-        ) : (
-          <div className="empty-state">No applications found.</div>
-        )}
+
+                {/* Application Details */}
+                <div className="text-gray-700 space-y-2">
+                  <p className="text-sm font-medium">👤 {app.studentName}</p>
+                  <p className="text-sm">📌 Type: <span className="font-semibold">{app.type}</span></p>
+                  <p className="text-sm font-semibold text-green-600">💰 Budget: {app.requestedBudget}</p>
+                  <p className="text-sm">🔥 Priority: {app.priority}</p>
+                </div>
+
+                {/* Supporting Document Image */}
+                <div className="mt-4 flex justify-center">
+                  {app.supportingDoc ? (
+                    <div className="custom-image-container">
+                      <img src={app.supportingDoc} alt="Supporting Doc" />
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">🚫 No Image</p>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                {role === "admin" && app.status === "Pending" && (
+                  <div className="mt-4 flex space-x-2 justify-center custom-actions">
+                    <button onClick={() => handleAction(app._id, "Approved")} className="approve-button">
+                      ✅ Approve
+                    </button>
+                    <button onClick={() => handleAction(app._id, "Rejected")} className="reject-button">
+                      ❌ Reject
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="col-span-2 text-center text-gray-500 text-lg">🚫 No applications found.</p>
+          )}
+        </div>
       </div>
     </div>
   );

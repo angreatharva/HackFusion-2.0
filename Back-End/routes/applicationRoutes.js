@@ -1,14 +1,16 @@
 const express = require("express");
-const router = express.Router();
-const { 
-  createApplication, 
-  getApplications, 
-  updateApplicationStatus 
+const {
+  submitApplication,
+  getApplications,
+  updateApplicationStatus,
 } = require("../controllers/applicationController");
 const { auth, checkAdmin } = require("../middleware/authMiddleware");
 
-router.post("/", auth, createApplication);
-router.get("/", auth, getApplications);
-router.put("/:id", auth, checkAdmin, updateApplicationStatus);
+const router = express.Router();
+
+// Application routes
+router.post("/", auth, submitApplication); // Submit an application (Authenticated users)
+router.get("/", auth, getApplications); // Get all applications (Authenticated users)
+router.put("/:id", auth, checkAdmin, updateApplicationStatus); // Update application status (Admin only)
 
 module.exports = router;
