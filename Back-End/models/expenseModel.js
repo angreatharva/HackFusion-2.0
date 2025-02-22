@@ -1,4 +1,3 @@
-// expenseModel.js
 const mongoose = require("mongoose");
 
 const expenseSchema = new mongoose.Schema({
@@ -28,8 +27,8 @@ const expenseSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["Pending", "Approved", "Rejected"],
-    default: "Pending"
+    enum: ["Approved"],
+    default: "Approved"
   },
   submittedAt: {
     type: Date,
@@ -41,7 +40,7 @@ const expenseSchema = new mongoose.Schema({
   }
 });
 
-// Update lastUpdatedAt timestamp on every update
+// Auto-update lastUpdatedAt field
 expenseSchema.pre('save', function(next) {
   this.lastUpdatedAt = new Date();
   next();

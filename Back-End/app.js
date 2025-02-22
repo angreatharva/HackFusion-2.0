@@ -14,6 +14,7 @@ const leaveRequestRoutes = require("./routes/leaveRequestRoutes");
 const budgetRoutes = require("./routes/budgetRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const slotRoutes = require("./routes/slots");
+const appointmentRoutes = require("./routes/appointmentRoutes");
 const escalatePriorities = require("./utils/escalation");
 const { initializeSocket } = require("./utils/socketService");
 
@@ -61,6 +62,7 @@ app.use("/api/records", require("./routes/recordRoutes"));
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/health-reports", healthReportRoutes);
 app.use("/api/leave-requests", leaveRequestRoutes);
+app.use("/api/appointments", appointmentRoutes);
 
 const port = 8000;
 app.listen(port, () => {

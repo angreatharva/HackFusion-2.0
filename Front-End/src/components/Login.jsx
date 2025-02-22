@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../api/auth";
+import { encryptData } from "../utils/encryption"; // Import encryption utility
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -11,24 +12,39 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const { token, role, name } = await loginUser(email, password);
+      // Call loginUser with the email and password
+      const {
+        token,
+        role,
+        name,
+        email: userEmail,
+        gender,
+      } = await loginUser(email, password);
 
       // Generate a unique tab identifier
-      const tabId = sessionStorage.getItem("tabId") || Date.now();
+      const tabId = sessionStorage.getItem("tabId") || Date.now().toString();
       sessionStorage.setItem("tabId", tabId);
 
-      // Store auth details using the unique tab identifier
+      // Encrypt sensitive data before storing in localStorage
+      // localStorage.setItem(`authToken_${tabId}`, token);
+      // localStorage.setItem(`role_${tabId}`, encryptData(role));
+      // localStorage.setItem(`name_${tabId}`, encryptData(name));
+      // localStorage.setItem(`email_${tabId}`, encryptData(userEmail));
+      // localStorage.setItem(`gender_${tabId}`, encryptData(gender));
+
       localStorage.setItem(`authToken_${tabId}`, token);
       localStorage.setItem(`role_${tabId}`, role);
       localStorage.setItem(`name_${tabId}`, name);
+      localStorage.setItem(`gender_${tabId}`, gender);
 
-      console.log("Token", token);
-      console.log("role", role);
-      console.log("name", name);
+      console.log("Token:", token);
+      console.log("Role:", role);
+      console.log("Name:", name);
+      console.log("Gender:", gender);
 
-      navigate("/");
+      navigate("/home");
     } catch (error) {
-      setError("Invalid email or password.");
+      setError(error.message || "Invalid email or password.");
     }
   };
 

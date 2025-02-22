@@ -19,7 +19,9 @@ import ComplaintsList from "./components/ComplaintsList";
 import HealthReport from "./components/healthReport";
 import BudgetPage from "./components/BudgetPage";
 import ExpensePage from "./components/ExpensePage";
-import "./App.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import StudentAppointmentForm from "./components/StudentAppointmentForm";
+import DoctorDashboard from "./components/DoctorDashboard";
 
 function App() {
   const [role, setRole] = useState(localStorage.getItem("role"));
@@ -31,10 +33,10 @@ function App() {
     }
   }, [token]);
 
-  // Wait for role to be set before rendering Routes
-  if (!role) {
-    return <div>Loading...</div>; // Or return a loading spinner until the role is fetched
-  }
+  // // Wait for role to be set before rendering Routes
+  // if (!role) {
+  //   return <div>Loading...</div>; // Or return a loading spinner until the role is fetched
+  // }
 
   return (
     <Router>
@@ -89,6 +91,11 @@ function App() {
         />
 
         <Route path="/healthReport" element={<HealthReport />} />
+        <Route
+          path="/studentAppointmentForm"
+          element={<StudentAppointmentForm />}
+        />
+        <Route path="/doctorDashboard" element={<DoctorDashboard />} />
       </Routes>
     </Router>
   );

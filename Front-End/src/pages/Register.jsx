@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import request from "../api/api";
+import Navbar from "../components/commonNavBar";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -7,6 +10,7 @@ const Register = () => {
     email: "",
     password: "",
     role: "student",
+    gender: "",
     studentDetails: {
       rollNumber: "",
       class: "",
@@ -18,7 +22,10 @@ const Register = () => {
     coordinatorDetails: { department: "", assignedClasses: "" },
   });
 
-  // 🔄 Handle input change
+  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+  const navigate = useNavigate();
+
+  // 🟢 Handle Input Change
   const handleChange = (e) => {
     const { name, value } = e.target;
     const keys = name.split(".");
@@ -33,100 +40,91 @@ const Register = () => {
     }
   };
 
-  // 🚀 Handle form submission
+  // 🚀 Handle Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 🌟 Prepare payload based on role
     const payload = {
       name: formData.name,
       email: formData.email,
       password: formData.password,
       role: formData.role,
+      gender: formData.gender,
     };
 
-    if (formData.role === "student") {
-      payload.studentDetails = formData.studentDetails;
-    } else if (formData.role === "doctor") {
-      payload.doctorDetails = formData.doctorDetails;
-    } else if (formData.role === "coordinator") {
-      payload.coordinatorDetails = formData.coordinatorDetails;
+    switch (formData.role) {
+      case "student":
+        payload.studentDetails = formData.studentDetails;
+        break;
+      case "doctor":
+        payload.doctorDetails = formData.doctorDetails;
+        break;
+      case "coordinator":
+        payload.coordinatorDetails = formData.coordinatorDetails;
+        break;
+      default:
+        break;
     }
 
     try {
-      console.log("Submitting Data:", payload);
-
       const response = await request("/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      alert("User registered successfully!");
-      console.log("Response:", response);
+      if (response.ok) {
+        alert("🎉 User registered successfully!");
+        setFormData({
+          name: "",
+          email: "",
+          password: "",
+          role: "student",
+          gender: "",
+          studentDetails: {
+            rollNumber: "",
+            class: "",
+            section: "",
+            parentEmail: "",
+            parentPhone: "",
+          },
+          doctorDetails: {
+            specialization: "",
+            licenseNumber: "",
+            department: "",
+          },
+          coordinatorDetails: { department: "", assignedClasses: "" },
+        });
+      } else {
+        const errorData = await response.json();
+        alert(`❌ Failed to register user: ${errorData.message}`);
+      }
     } catch (error) {
-      alert("Failed to register user.");
-      console.error("Error:", error.message);
+      console.error("Error during registration:", error);
+      alert("⚠️ An error occurred. Please try again.");
     }
   };
 
-  return (
-    <div className="register-container">
-      <h2>Register User</h2>
+  // 🔒 Check Authentication
+  useEffect(() => {
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
+    const name = localStorage.getItem(`name_${tabId}`);
+    const role = localStorage.getItem(`role_${tabId}`);
 
-      <form onSubmit={handleSubmit} className="register-form">
-        {/* 🟢 Basic User Info */}
-        <div className="form-group">
-          <label>Name:</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
+    if (!token) {
+      navigate("/");
+    } else {
+      setUserInfo({ name, role });
+    }
+  }, [navigate]);
 
-        <div className="form-group">
-          <label>Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Password:</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Role:</label>
-          <select
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            required
-          >
-            <option value="student">Student</option>
-            <option value="doctor">Doctor</option>
-            <option value="coordinator">Coordinator</option>
-          </select>
-        </div>
-
-        {/* 🟡 Role-Specific Fields */}
-        {formData.role === "student" && (
-          <div className="role-section">
-            <h3>Student Details</h3>
+  const renderRoleFields = () => {
+    switch (formData.role) {
+      case "student":
+        return (
+          <div>
+            <h5>🎓 Student Details</h5>
             {[
               "rollNumber",
               "class",
@@ -134,118 +132,136 @@ const Register = () => {
               "parentEmail",
               "parentPhone",
             ].map((field) => (
-              <input
-                key={field}
-                type={field.includes("Email") ? "email" : "text"}
-                name={`studentDetails.${field}`}
-                placeholder={field.replace(/([A-Z])/g, " $1")}
-                value={formData.studentDetails[field]}
-                onChange={handleChange}
-                required
-              />
+              <div className="mb-3" key={field}>
+                <label className="form-label">
+                  {field.replace(/([A-Z])/g, " $1").trim()}:
+                </label>
+                <input
+                  type={field.includes("Email") ? "email" : "text"}
+                  className="form-control"
+                  name={`studentDetails.${field}`}
+                  value={formData.studentDetails[field]}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
             ))}
           </div>
-        )}
-
-        {formData.role === "doctor" && (
-          <div className="role-section">
-            <h3>Doctor Details</h3>
+        );
+      case "doctor":
+        return (
+          <div>
+            <h5>🏥 Doctor Details</h5>
             {["specialization", "licenseNumber", "department"].map((field) => (
-              <input
-                key={field}
-                type="text"
-                name={`doctorDetails.${field}`}
-                placeholder={field.replace(/([A-Z])/g, " $1")}
-                value={formData.doctorDetails[field]}
-                onChange={handleChange}
-                required
-              />
+              <div className="mb-3" key={field}>
+                <label className="form-label">
+                  {field.replace(/([A-Z])/g, " $1").trim()}:
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name={`doctorDetails.${field}`}
+                  value={formData.doctorDetails[field]}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
             ))}
           </div>
-        )}
-
-        {formData.role === "coordinator" && (
-          <div className="role-section">
-            <h3>Coordinator Details</h3>
+        );
+      case "coordinator":
+        return (
+          <div>
+            <h5>📅 Coordinator Details</h5>
             {["department", "assignedClasses"].map((field) => (
-              <input
-                key={field}
-                type="text"
-                name={`coordinatorDetails.${field}`}
-                placeholder={field.replace(/([A-Z])/g, " $1")}
-                value={formData.coordinatorDetails[field]}
-                onChange={handleChange}
-                required
-              />
+              <div className="mb-3" key={field}>
+                <label className="form-label">
+                  {field.replace(/([A-Z])/g, " $1").trim()}:
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name={`coordinatorDetails.${field}`}
+                  value={formData.coordinatorDetails[field]}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
             ))}
           </div>
-        )}
+        );
+      default:
+        return null;
+    }
+  };
 
-        <button type="submit" className="submit-btn">
-          Register
-        </button>
-      </form>
+  return (
+    <div>
+      <Navbar userInfo={userInfo} />
+      <div className="container mt-5">
+        <div className="card shadow-sm mx-auto" style={{ maxWidth: "650px" }}>
+          <div className="card-body">
+            <h2 className="text-center mb-4">📝 Register User</h2>
 
-      {/* 🎨 Styling */}
-      <style jsx>{`
-        .register-container {
-          max-width: 700px;
-          margin: 0 auto;
-          padding: 20px;
-          background-color: #f8f8f8;
-          border-radius: 10px;
-          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
+            <form onSubmit={handleSubmit}>
+              {["name", "email", "password"].map((field) => (
+                <div className="mb-3" key={field}>
+                  <label className="form-label">
+                    {field.charAt(0).toUpperCase() + field.slice(1)} 🟢:
+                  </label>
+                  <input
+                    type={field === "password" ? "password" : "text"}
+                    className="form-control"
+                    name={field}
+                    value={formData[field]}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              ))}
 
-        h2 {
-          text-align: center;
-          color: #333;
-        }
+              <div className="mb-3">
+                <label className="form-label">Role 🧑‍💼:</label>
+                <select
+                  className="form-select"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="student">🎓 Student</option>
+                  <option value="doctor">🏥 Doctor</option>
+                  <option value="coordinator">📅 Coordinator</option>
+                </select>
+              </div>
 
-        .form-group {
-          margin-bottom: 15px;
-        }
+              <div className="mb-3">
+                <label className="form-label">Gender ⚧:</label>
+                <select
+                  className="form-select"
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">👨 Male</option>
+                  <option value="female">👩 Female</option>
+                  <option value="other">🌈 Other</option>
+                </select>
+              </div>
 
-        label {
-          display: block;
-          margin-bottom: 5px;
-          color: #555;
-          font-weight: bold;
-        }
+              {renderRoleFields()}
 
-        input,
-        select {
-          width: 100%;
-          padding: 10px;
-          border: 1px solid #ccc;
-          border-radius: 5px;
-          font-size: 1em;
-          outline: none;
-        }
-
-        .role-section {
-          margin-top: 20px;
-          padding: 10px;
-          background-color: #e9f7f7;
-          border-left: 5px solid #007bff;
-          border-radius: 5px;
-        }
-
-        .submit-btn {
-          background-color: #007bff;
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 5px;
-          font-size: 1em;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
-
-        .submit-btn:hover {
-          background-color: #0056b3;
-        }
-      `}</style>
+              <div className="d-grid mt-4">
+                <button type="submit" className="btn btn-primary">
+                  🚀 Register Now
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

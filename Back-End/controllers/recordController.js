@@ -4,7 +4,7 @@ const Record = require("../models/recordModel");
  * Add a new record (Admin Only)
  */
 const addRecord = async (req, res) => {
-  if (req.user.role !== "admin")
+  if (req.user.role !== "invigilator")
     return res.status(403).json({ message: "Access denied" });
 
   try {

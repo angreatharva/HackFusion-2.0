@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const StudentDashboard = () => {
   const [bookings, setBookings] = useState([]);
@@ -7,79 +8,86 @@ const StudentDashboard = () => {
   const [date, setDate] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
   const [availableSlots, setAvailableSlots] = useState([]);
+  const [remainingSlots, setRemainingSlots] = useState({});
   const [loading, setLoading] = useState(false);
-  const token = localStorage.getItem("token");
+  const [submitting, setSubmitting] = useState(false);
+  const [bookingMessage, setBookingMessage] = useState(null);
 
+  const tabId = sessionStorage.getItem("tabId");
+  const token = localStorage.getItem(`authToken_${tabId}`);
+
+  // Fetch user's bookings
   useEffect(() => {
-    if (!token) return;
-    fetchBookings();
+    if (token) fetchBookings();
   }, [token]);
 
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const tabId = sessionStorage.getItem("tabId");
-      const token = localStorage.getItem(`authToken_${tabId}`);
-      const name = localStorage.getItem(`name_${tabId}`);
-      const role = localStorage.getItem(`role_${tabId}`);
-      console.log("Token:" + token);
-      console.log("Name:" + name);
-      console.log("Role:" + role);
       const res = await fetch(
         "http://localhost:8000/api/bookings/my-bookings",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      if (!res.ok) throw new Error("Failed to fetch bookings.");
       const data = await res.json();
-      if (Array.isArray(data)) {
-        setBookings(data);
-      } else {
-        setBookings([]);
-      }
+      setBookings(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching bookings:", error);
+      setBookingMessage("Failed to load bookings. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch all facilities
   useEffect(() => {
     fetch("http://localhost:8000/api/facilities")
       .then((res) => res.json())
       .then((data) => setFacilities(data))
-      .catch((error) => console.error("Error fetching facilities:", error));
+      .catch((error) => {
+        console.error("Error fetching facilities:", error);
+        setBookingMessage("Failed to load facilities.");
+      });
   }, []);
 
+  // Fetch available slots when facility or date changes
   useEffect(() => {
     if (!selectedFacility || !date) {
       setAvailableSlots([]);
+      setRemainingSlots({});
       return;
     }
 
-    fetch(`http://localhost:8000/api/slots/${selectedFacility}/${date}`)
+    fetch(
+      `http://localhost:8000/api/bookings/slots/${selectedFacility}/${date}`
+    )
       .then((res) => res.json())
-      .then((data) => setAvailableSlots(data.availableSlots || []))
-      .catch((error) =>
-        console.error("Error fetching available slots:", error)
-      );
+      .then((data) => {
+        console.log("API Response:", data); // Debugging log
+        setAvailableSlots(data.availableSlots || []);
+        setRemainingSlots(data.remainingSlots || {});
+      })
+      .catch((error) => {
+        console.error("Error fetching available slots:", error);
+        setBookingMessage("Failed to load available slots.");
+      });
   }, [selectedFacility, date]);
 
+  // Handle booking submission
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
     if (!selectedFacility || !date || !timeSlot) {
-      alert("Please select all required fields.");
+      setBookingMessage("Please select all required fields.");
       return;
     }
 
+    setSubmitting(true);
+    setBookingMessage(null);
+
     try {
-      const tabId = sessionStorage.getItem("tabId");
-      const token = localStorage.getItem(`authToken_${tabId}`);
-      const name = localStorage.getItem(`name_${tabId}`);
-      const role = localStorage.getItem(`role_${tabId}`);
-      console.log("Token:" + token);
-      console.log("Name:" + name);
-      console.log("Role:" + role);
       const res = await fetch("http://localhost:8000/api/bookings/request", {
         method: "POST",
         headers: {
@@ -90,20 +98,27 @@ const StudentDashboard = () => {
       });
 
       const data = await res.json();
-      alert(data.message);
 
       if (res.ok) {
-        fetchBookings();
+        setBookingMessage("Successfully booked!");
+        fetchBookings(); // Refresh bookings
         setSelectedFacility("");
         setDate("");
         setTimeSlot("");
         setAvailableSlots([]);
+        setRemainingSlots({});
+      } else {
+        setBookingMessage(data.message || "Booking failed. Please try again.");
       }
     } catch (error) {
       console.error("Error submitting booking:", error);
+      setBookingMessage("Booking failed. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
+  // Get min and max dates for the date picker
   const getMinMaxDates = () => {
     const today = new Date();
     const minDate = today.toISOString().split("T")[0];
@@ -116,172 +131,130 @@ const StudentDashboard = () => {
   const { minDate, maxDate } = getMinMaxDates();
 
   return (
-    <div className="dashboard-container">
-      <style>{`
-        /* General Styles */
-        body {
-          font-family: "Arial", sans-serif;
-          background-color: #f4f4f9;
-          color: #333;
-          margin: 0;
-          padding: 0;
-        }
-
-        .dashboard-container {
-          max-width: 1200px;
-          margin: 20px auto;
-          padding: 20px;
-          background-color: #fff;
-          border-radius: 8px;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        h2, h3 {
-          color: #2c3e50;
-        }
-
-        h2 {
-          font-size: 24px;
-          margin-bottom: 20px;
-        }
-
-        h3 {
-          font-size: 20px;
-          margin-bottom: 15px;
-        }
-
-        /* Booking Form Styles */
-        .booking-form {
-          margin-bottom: 30px;
-          padding: 20px;
-          background-color: #f9f9f9;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .booking-form form {
-          display: flex;
-          flex-direction: column;
-          gap: 15px;
-        }
-
-        .booking-form select,
-        .booking-form input[type="date"] {
-          padding: 10px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 16px;
-          background-color: #fff;
-          transition: border-color 0.3s ease;
-        }
-
-        .booking-form select:focus,
-        .booking-form input[type="date"]:focus {
-          border-color: #3498db;
-          outline: none;
-        }
-
-        .booking-form button {
-          padding: 10px 15px;
-          background-color: #3498db;
-          color: #fff;
-          border: none;
-          border-radius: 4px;
-          font-size: 16px;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
-
-        .booking-form button:hover {
-          background-color: #2980b9;
-        }
-
-        /* Booking Table Styles */
-        .booking-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-bottom: 30px;
-        }
-
-        .booking-table th,
-        .booking-table td {
-          padding: 12px;
-          text-align: left;
-          border-bottom: 1px solid #ddd;
-        }
-
-        .booking-table th {
-          background-color: #3498db;
-          color: #fff;
-        }
-
-        .booking-table tr:hover {
-          background-color: #f1f1f1;
-        }
-
-        /* Availability Chart Styles */
-        .availability-chart {
-          margin-top: 30px;
-          padding: 20px;
-          background-color: #f9f9f9;
-          border-radius: 8px;
-        }
-      `}</style>
-
+    <div className="container mt-4">
       <h2>📅 My Bookings</h2>
+      {bookingMessage && (
+        <div className="alert alert-info mt-3" role="alert">
+          {bookingMessage}
+        </div>
+      )}
 
-      <div className="booking-form">
-        <h3>📌 Request a Booking</h3>
-        <form onSubmit={handleBookingSubmit}>
-          <select
-            value={selectedFacility}
-            onChange={(e) => setSelectedFacility(e.target.value)}
-            required
-          >
-            <option value="">Select Facility</option>
-            {facilities.map((facility) => (
-              <option key={facility._id} value={facility._id}>
-                {facility.name}
-              </option>
-            ))}
-          </select>
+      {/* Booking Form */}
+      <div className="card mb-4">
+        <div className="card-body">
+          <h3 className="card-title">📌 Request a Booking</h3>
+          <form onSubmit={handleBookingSubmit}>
+            <div className="mb-3">
+              <label htmlFor="facility" className="form-label">
+                Facility:
+              </label>
+              <select
+                className="form-select"
+                id="facility"
+                value={selectedFacility}
+                onChange={(e) => setSelectedFacility(e.target.value)}
+                required
+              >
+                <option value="">Select Facility</option>
+                {facilities.map((facility) => (
+                  <option key={facility._id} value={facility._id}>
+                    {facility.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            min={minDate}
-            max={maxDate}
-            required
-          />
+            <div className="mb-3">
+              <label htmlFor="date" className="form-label">
+                Date:
+              </label>
+              <input
+                type="date"
+                className="form-control"
+                id="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                min={minDate}
+                max={maxDate}
+                required
+              />
+            </div>
 
-          <select
-            value={timeSlot}
-            onChange={(e) => setTimeSlot(e.target.value)}
-            required
-          >
-            <option value="">Select Time Slot</option>
-            {availableSlots.length > 0 ? (
-              availableSlots.map((slotTime, index) => (
-                <option key={index} value={slotTime}>
-                  {slotTime}
-                </option>
-              ))
-            ) : (
-              <option disabled>No slots available</option>
-            )}
-          </select>
+            <div className="mb-3">
+              <label htmlFor="timeSlot" className="form-label">
+                Time Slot:
+              </label>
+              <select
+                className="form-select"
+                id="timeSlot"
+                value={timeSlot}
+                onChange={(e) => setTimeSlot(e.target.value)}
+                required
+              >
+                <option value="">Select Time Slot</option>
+                {availableSlots.length > 0 ? (
+                  availableSlots.map((slotTime, index) => (
+                    <option key={index} value={slotTime}>
+                      {slotTime} (Remaining: {remainingSlots[slotTime] || 0})
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>No slots available</option>
+                )}
+              </select>
+            </div>
 
-          <button type="submit">Book Facility</button>
-        </form>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={submitting}
+            >
+              {submitting ? "Booking..." : "Book Facility"}
+            </button>
+          </form>
+        </div>
       </div>
 
+      {/* Availability Chart */}
+      <div className="card">
+        <div className="card-body">
+          <h3 className="card-title">📊 Availability Chart</h3>
+          {selectedFacility && date ? (
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Time Slot</th>
+                  <th>Remaining Capacity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {availableSlots.length > 0 ? (
+                  availableSlots.map((slotTime, index) => (
+                    <tr key={index}>
+                      <td>{slotTime}</td>
+                      <td>{remainingSlots[slotTime] || 0}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="2">No slots available</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          ) : (
+            <p>Select a facility and date to view availability.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Bookings Table */}
       {loading ? (
         <p>Loading bookings...</p>
       ) : bookings.length === 0 ? (
         <p>No bookings yet.</p>
       ) : (
-        <table className="booking-table">
+        <table className="table table-striped">
           <thead>
             <tr>
               <th>Facility</th>
@@ -293,7 +266,7 @@ const StudentDashboard = () => {
           <tbody>
             {bookings.map((booking) => (
               <tr key={booking._id}>
-                <td>{booking.facility?.name || "Unknown Facility"}</td>
+                <td>{booking.facility?.name || "Facility not found"}</td>
                 <td>{new Date(booking.date).toLocaleDateString()}</td>
                 <td>{booking.timeSlot}</td>
                 <td>{booking.status}</td>
@@ -302,30 +275,6 @@ const StudentDashboard = () => {
           </tbody>
         </table>
       )}
-
-      <div className="availability-chart">
-        <h3>📊 Availability Chart</h3>
-        {selectedFacility && date ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Time Slot</th>
-                <th>Availability</th>
-              </tr>
-            </thead>
-            <tbody>
-              {availableSlots.map((slotTime, index) => (
-                <tr key={index}>
-                  <td>{slotTime}</td>
-                  <td>✅ Available</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>Select a facility and date to view availability.</p>
-        )}
-      </div>
     </div>
   );
 };

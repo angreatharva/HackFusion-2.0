@@ -10,6 +10,7 @@ const register = async (req, res) => {
     email,
     password,
     role,
+    gender,
     studentDetails,
     doctorDetails,
     coordinatorDetails,
@@ -38,6 +39,7 @@ const register = async (req, res) => {
       email,
       password: hashedPassword,
       role: role || "student",
+      gender,
     };
 
     // Conditionally add role-specific details
@@ -86,13 +88,21 @@ const login = async (req, res) => {
       user: {
         id: user._id,
         role: user.role,
+        email: user.email,
+        gender: user.gender,
       },
     };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
 
-    res.json({ token, role: user.role, name: user.name });
+    res.json({
+      token,
+      role: user.role,
+      name: user.name,
+      email: user.email,
+      gender: user.gender,
+    });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Server error." });
