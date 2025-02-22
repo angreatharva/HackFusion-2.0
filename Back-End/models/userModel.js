@@ -61,6 +61,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       enum: ["admin", "student", "doctor", "coordinator", "board_member"],
     },
+    gender: { type: String, enum: ["male", "female", "other"], required: true },
     votedPolls: [{ type: mongoose.Schema.Types.ObjectId, ref: "Poll" }],
     resetPasswordToken: String,
     resetPasswordExpire: Date,

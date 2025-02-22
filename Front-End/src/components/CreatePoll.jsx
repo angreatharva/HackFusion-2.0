@@ -1,171 +1,176 @@
-import { useState } from "react";
-import { createPoll } from "../api/poll";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
+import Navbar from "../components/commonNavBar";
 
-const CreatePoll = ({ token }) => {
+const CreatePoll = () => {
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
+  const [duration, setDuration] = useState(30);
+  const [message, setMessage] = useState("");
+  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state
+  const navigate = useNavigate();
 
-  const handleCreatePoll = async () => {
-    const pollData = {
-      question,
-      options: options.map((option) => ({ option })),
-    };
+  useEffect(() => {
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
+    const name = localStorage.getItem(`name_${tabId}`);
+    const role = localStorage.getItem(`role_${tabId}`);
 
-    const result = await createPoll(pollData, token);
-    if (result) {
-      alert("Poll created successfully");
+    if (!token) {
+      navigate("/");
+    } else {
+      setUserInfo({ name, role });
+    }
+  }, [navigate]);
+
+  const handleOptionChange = (index, value) => {
+    const newOptions = [...options];
+    newOptions[index] = value;
+    setOptions(newOptions);
+  };
+
+  const addOption = () => setOptions([...options, ""]);
+
+  const removeOption = (index) => {
+    const newOptions = options.filter((_, i) => i !== index);
+    setOptions(newOptions);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!question || options.some((option) => option.trim() === "")) {
+      setMessage("⚠️ Please fill out the question and all options.");
+      return;
+    }
+
+    if (duration <= 0) {
+      setMessage("⚠️ Poll duration must be a positive number.");
+      return;
+    }
+
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
+    setIsSubmitting(true);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/api/polls/create",
+        {
+          question,
+          options: options.map((option) => ({ option })),
+          duration,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setMessage(`✅ ${response.data.message}`);
       setQuestion("");
       setOptions(["", ""]);
-    }
-  };
-
-  const handleAddOption = () => {
-    setOptions([...options, ""]);
-  };
-
-  const handleRemoveOption = (index) => {
-    if (options.length > 2) {
-      const newOptions = options.filter((_, i) => i !== index);
-      setOptions(newOptions);
-    } else {
-      alert("At least two options are required.");
+      setDuration(30);
+    } catch (error) {
+      setMessage(
+        error.response?.data?.message ||
+          "❌ Failed to create poll. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="poll-container">
-      <h2>Create Poll</h2>
+    <div>
+      <Navbar userInfo={userInfo} />
 
-      <div className="form-group">
-        <label htmlFor="question">Question:</label>
-        <input
-          type="text"
-          id="question"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Enter poll question"
-        />
-      </div>
+      <div className="container mt-4">
+        <h1 className="text-center mb-4">Create a New Poll ✨</h1>
 
-      <div className="form-group">
-        <label>Options:</label>
-        {options.map((option, index) => (
-          <div key={index} className="option-group">
+        {message && (
+          <div
+            className={`alert ${
+              message.includes("✅") ? "alert-success" : "alert-danger"
+            }`}
+          >
+            {message}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="card p-4 shadow">
+          <div className="mb-3">
+            <label htmlFor="question" className="form-label">
+              📝 Poll Question:
+            </label>
             <input
               type="text"
-              value={option}
-              onChange={(e) => {
-                const newOptions = [...options];
-                newOptions[index] = e.target.value;
-                setOptions(newOptions);
-              }}
-              placeholder={`Option ${index + 1}`}
+              id="question"
+              className="form-control"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="Enter your poll question"
+              required
             />
-            <button
-              type="button"
-              className="remove-button"
-              onClick={() => handleRemoveOption(index)}
-              disabled={options.length <= 2}
-            >
-              &#x2716;
-            </button>
           </div>
-        ))}
-        <button type="button" className="add-button" onClick={handleAddOption}>
-          + Add Option
-        </button>
+
+          {options.map((option, index) => (
+            <div className="mb-3 d-flex align-items-center" key={index}>
+              <input
+                type="text"
+                className="form-control me-2"
+                value={option}
+                onChange={(e) => handleOptionChange(index, e.target.value)}
+                placeholder={`Option ${index + 1}`}
+                required
+              />
+              {options.length > 2 && (
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={() => removeOption(index)}
+                >
+                  ❌ Remove
+                </button>
+              )}
+            </div>
+          ))}
+
+          <button
+            type="button"
+            className="btn btn-outline-primary mb-3"
+            onClick={addOption}
+          >
+            ➕ Add Option
+          </button>
+
+          <div className="mb-3">
+            <label htmlFor="duration" className="form-label">
+              ⏳ Poll Duration (minutes):
+            </label>
+            <input
+              type="number"
+              id="duration"
+              className="form-control"
+              value={duration}
+              onChange={(e) => setDuration(Math.max(1, Number(e.target.value)))}
+              min="1"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-success w-100"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "⏳ Creating..." : "🚀 Create Poll"}
+          </button>
+        </form>
       </div>
-
-      <button className="create-button" onClick={handleCreatePoll}>
-        Create Poll
-      </button>
-
-      <style>{`
-        .poll-container {
-          width: 80%;
-          max-width: 600px;
-          margin: 50px auto;
-          padding: 20px;
-          background: white;
-          border-radius: 10px;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        h2 {
-          text-align: center;
-          color: #333;
-        }
-
-        .form-group {
-          margin-bottom: 20px;
-        }
-
-        label {
-          display: block;
-          margin-bottom: 5px;
-          font-weight: bold;
-        }
-
-        input[type="text"] {
-          width: 100%;
-          padding: 10px;
-          border: 1px solid #ccc;
-          border-radius: 5px;
-          font-size: 1rem;
-          box-sizing: border-box;
-        }
-
-        .option-group {
-          display: flex;
-          align-items: center;
-          margin-bottom: 10px;
-        }
-
-        .option-group input[type="text"] {
-          flex: 1;
-          margin-right: 10px;
-        }
-
-        .add-button,
-        .remove-button,
-        .create-button {
-          padding: 10px 20px;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          font-size: 1rem;
-        }
-
-        .add-button {
-          background: #4CAF50;
-          color: white;
-          margin-top: 10px;
-        }
-
-        .add-button:hover {
-          background: #45a049;
-        }
-
-        .remove-button {
-          background: #f44336;
-          color: white;
-        }
-
-        .remove-button:hover {
-          background: #e53935;
-        }
-
-        .create-button {
-          width: 100%;
-          background: #2196F3;
-          color: white;
-          margin-top: 20px;
-        }
-
-        .create-button:hover {
-          background: #1976D2;
-        }
-      `}</style>
     </div>
   );
 };

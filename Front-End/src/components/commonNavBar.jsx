@@ -17,140 +17,133 @@ const Navbar = ({ userInfo }) => {
       </div>
 
       <div className="navbar-right">
-        {userInfo.role === "doctor" && (
-          <button
-            className="navbar-button"
-            onClick={() => {
-              navigate("/healthReport");
-            }}
-          >
-            Health Report
-          </button>
+        {userInfo.role !== "invigilator" && (
+          <>
+            {userInfo.role === "doctor" && (
+              <button
+                className="navbar-button"
+                onClick={() => navigate("/healthReport")}
+              >
+                Health Report
+              </button>
+            )}
+
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/complaintForm")}
+            >
+              Complaint Form
+            </button>
+
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/complaintList")}
+            >
+              Complaint List
+            </button>
+
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/budget")}
+            >
+              Budget
+            </button>
+
+            {userInfo.role === "admin" && (
+              <button
+                className="navbar-button"
+                onClick={() => navigate("/facilityApproval")}
+              >
+                Facility Approval
+              </button>
+            )}
+
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/facilityBooking")}
+            >
+              Facility Booking
+            </button>
+
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/applicationList")}
+            >
+              Applications List
+            </button>
+
+            {userInfo.role === "student" && (
+              <button
+                className="navbar-button"
+                onClick={() => navigate("/applicationForm")}
+              >
+                Applications Form
+              </button>
+            )}
+
+            {userInfo.role === "student" && (
+              <button
+                className="navbar-button"
+                onClick={() => navigate("/pollsList")}
+              >
+                Go to Voting
+              </button>
+            )}
+
+            {userInfo.role === "admin" && (
+              <>
+                <button
+                  className="navbar-button"
+                  onClick={() => navigate("/register")}
+                >
+                  Register
+                </button>
+                <button
+                  className="navbar-button"
+                  onClick={() => navigate("/create-poll")}
+                >
+                  Create Poll
+                </button>
+                <button
+                  className="navbar-button"
+                  onClick={() => navigate("/pollsList")}
+                >
+                  Go to Voting
+                </button>
+              </>
+            )}
+          </>
         )}
-
         <button
           className="navbar-button"
-          onClick={() => {
-            navigate("/complaintForm");
-          }}
-        >
-          Complaint Form
-        </button>
-
-        <button
-          className="navbar-button"
-          onClick={() => {
-            navigate("/complaintList");
-          }}
-        >
-          Complaint List
-        </button>
-
-        <button
-          className="navbar-button"
-          onClick={() => {
-            navigate("/budget");
-          }}
-        >
-          Budget
-        </button>
-        {userInfo.role === "admin" && (
-          <button
-            className="navbar-button"
-            onClick={() => {
-              navigate("/facilityApproval");
-            }}
-          >
-            Facility Approval
-          </button>
-        )}
-
-        <button
-          className="navbar-button"
-          onClick={() => {
-            navigate("/cheatingList");
-          }}
+          onClick={() => navigate("/cheatingList")}
         >
           Cheating List
         </button>
-
-        {userInfo.role === "admin" && (
-          <button
-            className="navbar-button"
-            onClick={() => {
-              navigate("/cheatingAdmin");
-            }}
-          >
-            Cheating Admin
-          </button>
-        )}
-
         <button
           className="navbar-button"
           onClick={() => {
-            navigate("/facilityBooking");
+            navigate("/studentAppointmentForm");
           }}
         >
-          Facility Booking
+          studentAppointmentForm
         </button>
-
         <button
           className="navbar-button"
           onClick={() => {
-            navigate("/applicationList");
+            navigate("/doctorDashboard");
           }}
         >
-          Applications List
+          doctorDashboard
         </button>
 
-        {userInfo.role === "student" && (
-          <button
-            className="navbar-button"
-            onClick={() => {
-              navigate("/applicationForm");
-            }}
-          >
-            Applications Form
-          </button>
-        )}
-
-        {/* Conditional rendering for the buttons */}
-        {userInfo.role === "student" && (
-          <button
-            className="navbar-button"
-            onClick={() => {
-              navigate("/pollsList");
-            }}
-          >
-            Go to Voting
-          </button>
-        )}
-
-        {userInfo.role === "admin" && (
+        {userInfo.role === "invigilator" && (
           <>
             <button
               className="navbar-button"
-              onClick={() => {
-                navigate("/register");
-              }}
+              onClick={() => navigate("/cheatingAdmin")}
             >
-              Register
-            </button>
-            <button
-              className="navbar-button"
-              onClick={() => {
-                navigate("/create-poll");
-              }}
-            >
-              Create Poll
-            </button>
-            <button
-              className="navbar-button"
-              onClick={() => {
-                navigate("/pollsList");
-              }}
-            >
-              Go to Voting
+              Cheating Admin
             </button>
           </>
         )}

@@ -123,6 +123,20 @@ const ApplicationForm = ({ onApplicationSubmit }) => {
             <option value="Sponsorship">🤝 Sponsorship</option>
           </select>
 
+          {/* <select
+            name="type"
+            value={formData.type}
+            onChange={handleChange}
+            className="input-field"
+          >
+            <option value="Event Organization">🎉 Event Organization</option>
+            <option value="Budget Request">💰 Budget Request</option>
+            <option value="Sponsorship">🤝 Sponsorship</option>
+            <option value="Educational Trip">🚌 Educational Trip</option>
+            <option value="Mess Work">🍽️ Mess Work</option>
+            <option value="Departmental Work">🏫 Departmental Work</option>
+          </select> */}
+
           <input
             type="text"
             name="eventName"
@@ -159,7 +173,9 @@ const ApplicationForm = ({ onApplicationSubmit }) => {
             className="file-input"
           />
 
-          <button type="submit" className="submit-btn">🚀 Submit Application</button>
+          <button type="submit" className="submit-btn">
+            🚀 Submit Application
+          </button>
         </form>
       </div>
 

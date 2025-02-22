@@ -200,6 +200,24 @@ const ExpensePage = () => {
           .submit-btn:hover {
             background-color: #0056b3;
           }
+
+          .expense-list {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
+          }
+
+          .expense-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+          }
+
+          .expense-item strong {
+            color: #007bff;
+          }
         `}
       </style>
 
@@ -245,6 +263,8 @@ const ExpensePage = () => {
           <button type="submit" className="submit-btn">✅ Submit Expense</button>
         </form>
       </div>
+
+    
     </div>
   );
 };
