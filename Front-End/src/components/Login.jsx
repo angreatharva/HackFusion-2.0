@@ -26,7 +26,7 @@ const Login = () => {
       console.log("role", role);
       console.log("name", name);
 
-      navigate("/home");
+      navigate("/");
     } catch (error) {
       setError("Invalid email or password.");
     }
