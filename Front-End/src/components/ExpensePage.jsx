@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Chart from "chart.js/auto";
+import anime from "animejs";
 
 const ExpensePage = () => {
   const { budgetId } = useParams();
@@ -14,6 +16,8 @@ const ExpensePage = () => {
   });
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(true);
+  const chartRef = useRef(null);
+  const chartInstance = useRef(null);
 
   useEffect(() => {
     const tabId = sessionStorage.getItem("tabId");
@@ -27,31 +31,69 @@ const ExpensePage = () => {
 
     setRole(userRole);
 
-    axios
-      .get(`http://localhost:8000/api/budgets/${budgetId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setBudget(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching budget:", error);
+    const fetchData = async () => {
+      try {
+        const [budgetRes, expensesRes] = await Promise.all([
+          axios.get(`http://localhost:8000/api/budgets/${budgetId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`http://localhost:8000/api/expenses?budgetId=${budgetId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        setBudget(budgetRes.data);
+        setExpenses(expensesRes.data.expenses);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
         navigate("/");
-      });
+      }
+    };
 
-    axios
-      .get(`http://localhost:8000/api/expenses?budgetId=${budgetId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setExpenses(response.data.expenses);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching expenses:", error);
-        setLoading(false);
-      });
+    fetchData();
   }, [budgetId, navigate]);
+
+  useEffect(() => {
+    if (budget && chartRef.current) {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+
+      const ctx = chartRef.current.getContext("2d");
+      chartInstance.current = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Spent", "Remaining"],
+          datasets: [
+            {
+              data: [
+                budget.allocatedAmount - budget.remainingAmount,
+                budget.remainingAmount,
+              ],
+              backgroundColor: ["#FF6384", "#36A2EB"],
+              hoverOffset: 4,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            legend: { position: "bottom" },
+          },
+        },
+      });
+    }
+  }, [budget]);
+
+  useEffect(() => {
+    anime({
+      targets: ".expense-card",
+      opacity: [0, 1],
+      translateY: [30, 0],
+      delay: anime.stagger(100),
+      duration: 800,
+      easing: "easeOutExpo",
+    });
+  }, [expenses]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -83,24 +125,19 @@ const ExpensePage = () => {
 
       await axios.post(
         "http://localhost:8000/api/expenses",
-        {
-          ...formData,
-          budgetId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "user-name": userName,
-          },
-        }
+        { ...formData, budgetId },
+        { headers: { Authorization: `Bearer ${token}`, "user-name": userName } }
       );
 
       alert("Expense submitted successfully!");
       setFormData({ amount: "", description: "", proof: "" });
 
-      const response = await axios.get(`http://localhost:8000/api/expenses?budgetId=${budgetId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `http://localhost:8000/api/expenses?budgetId=${budgetId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setExpenses(response.data.expenses);
     } catch (error) {
       console.error("Error submitting expense:", error);
@@ -109,92 +146,55 @@ const ExpensePage = () => {
   };
 
   return (
-    <div className="expense-container">
+    <div className="expense-page">
       <style>
         {`
-          .expense-container {
-            padding: 20px;
+          .expense-page {
+            padding: 40px;
+            background-color: #f4f6f9;
             min-height: 100vh;
-            background-color: #f9fafb;
             display: flex;
             flex-direction: column;
             align-items: center;
           }
 
-          .budget-info-box {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          .card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 600px;
-            text-align: center;
+            max-width: 700px;
             margin-bottom: 20px;
           }
 
-          .title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
-          }
-
-          .budget-details {
-            display: flex;
-            justify-content: space-around;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #555;
-          }
-
-          .form-box {
-            background: white;
+          .chart-container {
+            max-width: 400px;
+            margin: auto;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
           }
 
-          .sub-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 15px;
-          }
-
-          .expense-form {
+          .form {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 15px;
           }
 
-          .input-field {
-            width: 100%;
-            padding: 10px;
+          .input, .file-input {
+            padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 0.9rem;
-          }
-
-          .file-input {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 0.9rem;
-            cursor: pointer;
+            border-radius: 8px;
+            font-size: 1rem;
           }
 
           .submit-btn {
+            padding: 12px;
             background-color: #007bff;
             color: white;
-            padding: 10px;
             border: none;
-            border-radius: 5px;
-            font-size: 1rem;
+            border-radius: 8px;
             cursor: pointer;
-            transition: 0.3s;
+            font-size: 1rem;
           }
 
           .submit-btn:hover {
@@ -204,53 +204,54 @@ const ExpensePage = () => {
           .expense-list {
             margin-top: 20px;
             width: 100%;
-            max-width: 600px;
           }
 
-          .expense-item {
+          .expense-card {
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            opacity: 0;
           }
 
-          .expense-item strong {
+          .expense-card strong {
             color: #007bff;
           }
         `}
       </style>
 
       {budget && (
-        <div className="budget-info-box">
-          <h1 className="title">💰 {budget.name} - Expense Management</h1>
-          <div className="budget-details">
-            <span>📌 Category: {budget.category}</span>
-            <span>💵 Remaining: ₹{budget.remainingAmount}</span>
-            <span>🏦 Total Budget: ₹{budget.allocatedAmount}</span>
+        <div className="card">
+          <h1>💸 {budget.name} - Expense Tracking</h1>
+          <div className="chart-container">
+            <canvas ref={chartRef}></canvas>
           </div>
+          <p>📊 Total Budget: ₹{budget.allocatedAmount}</p>
+          <p>✅ Remaining Budget: ₹{budget.remainingAmount}</p>
         </div>
       )}
 
-      <div className="form-box">
-        <h2 className="sub-title">📤 Submit New Expense</h2>
-        <form onSubmit={handleSubmit} className="expense-form">
+      <div className="card">
+        <h2>📥 Submit New Expense</h2>
+        <form onSubmit={handleSubmit} className="form">
           <input
             type="number"
             name="amount"
             value={formData.amount}
             onChange={handleInputChange}
-            placeholder="💰 Amount (₹)"
-            className="input-field"
-            max={budget?.remainingAmount}
+            placeholder="Amount (₹)"
+            className="input"
             required
           />
           <textarea
             name="description"
             value={formData.description}
             onChange={handleInputChange}
-            placeholder="📝 Description"
-            className="input-field"
+            placeholder="Description"
+            className="input"
             required
           />
           <input
@@ -260,11 +261,23 @@ const ExpensePage = () => {
             className="file-input"
             required
           />
-          <button type="submit" className="submit-btn">✅ Submit Expense</button>
+          <button type="submit" className="submit-btn">
+            Submit Expense
+          </button>
         </form>
       </div>
 
-    
+      <div className="expense-list">
+        {expenses.map((expense) => (
+          <div key={expense._id} className="expense-card">
+            <div>
+              <strong>₹{expense.amount}</strong>
+              <p>{expense.description}</p>
+            </div>
+            <span>{expense.status}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

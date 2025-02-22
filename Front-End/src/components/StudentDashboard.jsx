@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Pie } from "react-chartjs-2";
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const StudentDashboard = () => {
   const [bookings, setBookings] = useState([]);
@@ -16,44 +20,17 @@ const StudentDashboard = () => {
   const tabId = sessionStorage.getItem("tabId");
   const token = localStorage.getItem(`authToken_${tabId}`);
 
-  // Fetch user's bookings
   useEffect(() => {
     if (token) fetchBookings();
   }, [token]);
 
-  const fetchBookings = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        "http://localhost:8000/api/bookings/my-bookings",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!res.ok) throw new Error("Failed to fetch bookings.");
-      const data = await res.json();
-      setBookings(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error fetching bookings:", error);
-      setBookingMessage("Failed to load bookings. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch all facilities
   useEffect(() => {
     fetch("http://localhost:8000/api/facilities")
       .then((res) => res.json())
       .then((data) => setFacilities(data))
-      .catch((error) => {
-        console.error("Error fetching facilities:", error);
-        setBookingMessage("Failed to load facilities.");
-      });
+      .catch(() => setBookingMessage("Failed to load facilities."));
   }, []);
 
-  // Fetch available slots when facility or date changes
   useEffect(() => {
     if (!selectedFacility || !date) {
       setAvailableSlots([]);
@@ -66,17 +43,38 @@ const StudentDashboard = () => {
     )
       .then((res) => res.json())
       .then((data) => {
-        console.log("API Response:", data); // Debugging log
         setAvailableSlots(data.availableSlots || []);
         setRemainingSlots(data.remainingSlots || {});
       })
-      .catch((error) => {
-        console.error("Error fetching available slots:", error);
-        setBookingMessage("Failed to load available slots.");
-      });
+      .catch(() => setBookingMessage("Failed to load available slots."));
   }, [selectedFacility, date]);
 
-  // Handle booking submission
+  useEffect(() => {
+    if (bookingMessage) {
+      const timer = setTimeout(() => setBookingMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [bookingMessage]);
+
+  const fetchBookings = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        "http://localhost:8000/api/bookings/my-bookings",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!res.ok) throw new Error("Failed to fetch bookings.");
+      const data = await res.json();
+      setBookings(Array.isArray(data) ? data : []);
+    } catch {
+      setBookingMessage("Failed to load bookings.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
     if (!selectedFacility || !date || !timeSlot) {
@@ -98,10 +96,9 @@ const StudentDashboard = () => {
       });
 
       const data = await res.json();
-
       if (res.ok) {
-        setBookingMessage("Successfully booked!");
-        fetchBookings(); // Refresh bookings
+        setBookingMessage("✅ Successfully booked!");
+        fetchBookings();
         setSelectedFacility("");
         setDate("");
         setTimeSlot("");
@@ -110,15 +107,13 @@ const StudentDashboard = () => {
       } else {
         setBookingMessage(data.message || "Booking failed. Please try again.");
       }
-    } catch (error) {
-      console.error("Error submitting booking:", error);
+    } catch {
       setBookingMessage("Booking failed. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Get min and max dates for the date picker
   const getMinMaxDates = () => {
     const today = new Date();
     const minDate = today.toISOString().split("T")[0];
@@ -130,26 +125,44 @@ const StudentDashboard = () => {
 
   const { minDate, maxDate } = getMinMaxDates();
 
+  const chartData = {
+    labels: availableSlots,
+    datasets: [
+      {
+        label: "Remaining Slots",
+        data: availableSlots.map((slot) => remainingSlots[slot] || 0),
+        backgroundColor: ["#007bff", "#28a745", "#ffc107", "#dc3545"],
+      },
+    ],
+  };
+
   return (
     <div className="container mt-4">
-      <h2>📅 My Bookings</h2>
+      <h2 className="m-2 text-center text-primary fw-bold">
+        🚀 Campus Facility Booking
+      </h2>
+
       {bookingMessage && (
-        <div className="alert alert-info mt-3" role="alert">
+        <div
+          className="alert alert-info text-center fade show mt-3"
+          role="alert"
+        >
           {bookingMessage}
         </div>
       )}
 
-      {/* Booking Form */}
-      <div className="card mb-4">
+      <div className="card shadow-sm mb-4 animate__animated animate__fadeIn">
         <div className="card-body">
-          <h3 className="card-title">📌 Request a Booking</h3>
+          <h3 className="card-title text-success fw-bold">
+            📌 Request a Booking
+          </h3>
           <form onSubmit={handleBookingSubmit}>
             <div className="mb-3">
               <label htmlFor="facility" className="form-label">
                 Facility:
               </label>
               <select
-                className="form-select"
+                className="form-select border-primary"
                 id="facility"
                 value={selectedFacility}
                 onChange={(e) => setSelectedFacility(e.target.value)}
@@ -170,7 +183,7 @@ const StudentDashboard = () => {
               </label>
               <input
                 type="date"
-                className="form-control"
+                className="form-control border-primary"
                 id="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
@@ -185,7 +198,7 @@ const StudentDashboard = () => {
                 Time Slot:
               </label>
               <select
-                className="form-select"
+                className="form-select border-primary"
                 id="timeSlot"
                 value={timeSlot}
                 onChange={(e) => setTimeSlot(e.target.value)}
@@ -206,7 +219,7 @@ const StudentDashboard = () => {
 
             <button
               type="submit"
-              className="btn btn-primary"
+              className="btn btn-success w-100"
               disabled={submitting}
             >
               {submitting ? "Booking..." : "Book Facility"}
@@ -215,65 +228,76 @@ const StudentDashboard = () => {
         </div>
       </div>
 
-      {/* Availability Chart */}
-      <div className="card">
+      <div className="card shadow-sm animate__animated animate__fadeInUp">
         <div className="card-body">
-          <h3 className="card-title">📊 Availability Chart</h3>
+          <h3 className="card-title text-warning fw-bold">
+            📊 Availability Chart
+          </h3>
           {selectedFacility && date ? (
-            <table className="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Time Slot</th>
-                  <th>Remaining Capacity</th>
-                </tr>
-              </thead>
-              <tbody>
-                {availableSlots.length > 0 ? (
-                  availableSlots.map((slotTime, index) => (
-                    <tr key={index}>
-                      <td>{slotTime}</td>
-                      <td>{remainingSlots[slotTime] || 0}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="2">No slots available</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+            <div>
+              <Pie data={chartData} />
+              {availableSlots.map((slotTime, index) => (
+                <div key={index} className="mb-2">
+                  <strong>{slotTime}:</strong>
+                  <div className="progress">
+                    <div
+                      className="progress-bar"
+                      role="progressbar"
+                      style={{
+                        width: `${(remainingSlots[slotTime] || 0) * 10}%`,
+                      }}
+                    >
+                      {remainingSlots[slotTime] || 0} slots
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <p>Select a facility and date to view availability.</p>
           )}
         </div>
       </div>
 
-      {/* Bookings Table */}
+      <h2 className="mt-5 text-center">📅 My Bookings</h2>
       {loading ? (
-        <p>Loading bookings...</p>
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
       ) : bookings.length === 0 ? (
         <p>No bookings yet.</p>
       ) : (
-        <table className="table table-striped">
-          <thead>
-            <tr>
-              <th>Facility</th>
-              <th>Date</th>
-              <th>Time Slot</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bookings.map((booking) => (
-              <tr key={booking._id}>
-                <td>{booking.facility?.name || "Facility not found"}</td>
-                <td>{new Date(booking.date).toLocaleDateString()}</td>
-                <td>{booking.timeSlot}</td>
-                <td>{booking.status}</td>
+        <div className="table-responsive">
+          <table className="table table-hover table-striped">
+            <thead className="table-dark">
+              <tr>
+                <th>Facility</th>
+                <th>Date</th>
+                <th>Time Slot</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {bookings.map((booking) => (
+                <tr key={booking._id}>
+                  <td>{booking.facility?.name || "Facility not found"}</td>
+                  <td>{new Date(booking.date).toLocaleDateString()}</td>
+                  <td>{booking.timeSlot}</td>
+                  <td>
+                    <span
+                      className={`badge bg-$
+                        {booking.status === "Confirmed" ? "success" : "danger"}`}
+                    >
+                      {booking.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

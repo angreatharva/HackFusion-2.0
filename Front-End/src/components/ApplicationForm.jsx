@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Container, Row, Col, Form, Button, Card, Table } from "react-bootstrap";
+import { motion } from "framer-motion";
 
 const ApplicationForm = ({ onApplicationSubmit }) => {
   const [formData, setFormData] = useState({
@@ -77,176 +79,152 @@ const ApplicationForm = ({ onApplicationSubmit }) => {
   };
 
   return (
-    <div className="application-container">
-      <h2 className="title">📜 Submit Application</h2>
-
-      <div className="form-box">
-        <form onSubmit={handleSubmit} className="application-form">
-          <input
-            type="text"
-            name="studentName"
-            placeholder="👤 Student Name"
-            value={formData.studentName}
-            onChange={handleChange}
-            className="input-field"
-            required
-          />
-
-          <input
-            type="email"
-            name="email"
-            placeholder="📧 Email ID"
-            value={formData.email}
-            onChange={handleChange}
-            className="input-field"
-            required
-          />
-
-          <input
-            type="tel"
-            name="contactNo"
-            placeholder="📞 Contact No"
-            value={formData.contactNo}
-            onChange={handleChange}
-            className="input-field"
-            required
-          />
-
-          <select
-            name="type"
-            value={formData.type}
-            onChange={handleChange}
-            className="input-field"
+    <Container className="mt-5">
+      <Row className="justify-content-center">
+        <Col md={10} lg={8}>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            <option value="Event Organization">🎉 Event Organization</option>
-            <option value="Budget Request">💰 Budget Request</option>
-            <option value="Sponsorship">🤝 Sponsorship</option>
-          </select>
+            <Card className="shadow-lg border-0 p-4 rounded-4">
+              <h2 className="text-center mb-4 fw-bold text-primary">📜 Submit Application</h2>
 
-          {/* <select
-            name="type"
-            value={formData.type}
-            onChange={handleChange}
-            className="input-field"
-          >
-            <option value="Event Organization">🎉 Event Organization</option>
-            <option value="Budget Request">💰 Budget Request</option>
-            <option value="Sponsorship">🤝 Sponsorship</option>
-            <option value="Educational Trip">🚌 Educational Trip</option>
-            <option value="Mess Work">🍽️ Mess Work</option>
-            <option value="Departmental Work">🏫 Departmental Work</option>
-          </select> */}
+              <Form onSubmit={handleSubmit}>
+                <Row className="gy-3">
+                  <Col md={6}>
+                    <Form.Group>
+                      <Form.Label>👤 Student Name</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="studentName"
+                        value={formData.studentName}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
 
-          <input
-            type="text"
-            name="eventName"
-            placeholder="📌 Event/Project Name"
-            value={formData.eventName}
-            onChange={handleChange}
-            className="input-field"
-            required
-          />
+                  <Col md={6}>
+                    <Form.Group>
+                      <Form.Label>📧 Email ID</Form.Label>
+                      <Form.Control
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
 
-          <input
-            type="number"
-            name="requestedBudget"
-            placeholder="💵 Requested Budget"
-            value={formData.requestedBudget}
-            onChange={handleChange}
-            className="input-field"
-            required
-          />
+                  <Col md={6}>
+                    <Form.Group>
+                      <Form.Label>📞 Contact No</Form.Label>
+                      <Form.Control
+                        type="tel"
+                        name="contactNo"
+                        value={formData.contactNo}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
 
-          <textarea
-            name="justification"
-            placeholder="✍️ Justification/Details"
-            value={formData.justification}
-            onChange={handleChange}
-            className="input-field textarea"
-            required
-          ></textarea>
+                  <Col md={6}>
+                    <Form.Group>
+                      <Form.Label>📌 Application Type</Form.Label>
+                      <Form.Select name="type" value={formData.type} onChange={handleChange}>
+                        <option value="Event Organization">🎉 Event Organization</option>
+                        <option value="Budget Request">💰 Budget Request</option>
+                        <option value="Sponsorship">🤝 Sponsorship</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
 
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="file-input"
-          />
+                  <Col md={6}>
+                    <Form.Group>
+                      <Form.Label>📌 Event/Project Name</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="eventName"
+                        value={formData.eventName}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
 
-          <button type="submit" className="submit-btn">
-            🚀 Submit Application
-          </button>
-        </form>
-      </div>
+                  <Col md={6}>
+                    <Form.Group>
+                      <Form.Label>💵 Requested Budget</Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="requestedBudget"
+                        value={formData.requestedBudget}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
 
-      <style>
-        {`
-          .application-container {
-            max-width: 700px;
-            margin: auto;
-            padding: 20px;
-          }
-          .title {
-            text-align: center;
-            font-size: 28px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 15px;
-          }
-          .form-box {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-          }
-          .application-form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-          }
-          .input-field {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            color: #374151;
-            outline: none;
-            transition: 0.3s;
-          }
-          .input-field:focus {
-            border-color: #facc15;
-            box-shadow: 0 0 8px rgba(250, 204, 21, 0.5);
-          }
-          .textarea {
-            height: 80px;
-            resize: none;
-          }
-          .file-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-          }
-          .submit-btn {
-            width: 100%;
-            padding: 12px;
-            border-radius: 5px;
-            font-weight: bold;
-            background-color: #facc15;
-            color: #1e293b;
-            transition: 0.3s;
-            border: none;
-            cursor: pointer;
-          }
-          .submit-btn:hover {
-            background-color: #eab308;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(250, 204, 21, 0.4);
-          }
-        `}
-      </style>
-    </div>
+                  <Col md={12}>
+                    <Form.Group>
+                      <Form.Label>✍️ Justification/Details</Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        name="justification"
+                        rows={3}
+                        value={formData.justification}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
+
+                  <Col md={12}>
+                    <Form.Group>
+                      <Form.Label>📎 Upload Supporting Document</Form.Label>
+                      <Form.Control type="file" accept="image/*" onChange={handleFileChange} />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Button variant="primary" type="submit" className="w-100 mt-4 shadow-sm">
+                  🚀 Submit Application
+                </Button>
+              </Form>
+            </Card>
+          </motion.div>
+        </Col>
+      </Row>
+
+      <Row className="justify-content-center mt-5">
+        <Col md={10} lg={8}>
+          <Card className="shadow-sm rounded-4">
+            <Card.Body>
+              <h4 className="text-center mb-4 fw-bold text-secondary">📋 Application Overview</h4>
+              <Table bordered hover responsive className="text-center">
+                <thead className="table-primary">
+                  <tr>
+                    <th>Field</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(formData).map(([key, value]) => (
+                    <tr key={key}>
+                      <td className="fw-bold">{key}</td>
+                      <td>{value || "N/A"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

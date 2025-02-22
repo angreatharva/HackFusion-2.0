@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/commonNavBar";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { FaUpload } from "react-icons/fa";
 
 const AddRecord = () => {
   const [studentName, setStudentName] = useState("");
   const [reason, setReason] = useState("");
   const [proof, setProof] = useState(null);
+  const [email, setEmail] = useState("");
+
   const [ucid, setUcid] = useState("");
   const [dateOfCheating, setDateOfCheating] = useState("");
   const [examination, setExamination] = useState("Mid-Sem");
@@ -31,6 +35,17 @@ const AddRecord = () => {
     }
   }, [navigate, token, tabId]);
 
+  // Clear alerts after 3 seconds
+  useEffect(() => {
+    if (error || success) {
+      const timer = setTimeout(() => {
+        setError("");
+        setSuccess("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, success]);
+
   const handleProofChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -47,6 +62,12 @@ const AddRecord = () => {
     setError("");
     setSuccess("");
 
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@spit\.ac\.in$/;
+    if (!emailRegex.test(email)) {
+      setError("Only @spit.ac.in email addresses are allowed.");
+      return;
+    }
+
     if (!studentName || !reason || !proof) {
       setError("Please fill in all fields.");
       return;
@@ -62,6 +83,7 @@ const AddRecord = () => {
         body: JSON.stringify({
           ucid,
           studentName,
+          email,
           reason,
           proof,
           dateOfCheating,
@@ -78,11 +100,12 @@ const AddRecord = () => {
 
       setSuccess("Record added successfully!");
       setStudentName("");
+      setEmail("");
       setReason("");
       setProof(null);
       setDateOfCheating("");
-      setExamination("");
-      setSemester("");
+      setExamination("Mid-Sem");
+      setSemester(1);
       setSubjectName("");
       setUcid("");
     } catch (err) {
@@ -92,213 +115,175 @@ const AddRecord = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="min-vh-100 d-flex flex-column bg-light">
       <Navbar userInfo={userInfo} />
-      <div style={styles.formContainer}>
-        <h2 style={styles.title}>Add Record</h2>
-        {error && <p style={styles.error}>{error}</p>}
-        {success && <p style={styles.success}>{success}</p>}
-        <form onSubmit={handleSubmit}>
-          <div style={styles.inputGroup}>
-            <label htmlFor="ucid" style={styles.label}>
-              UCID:
-            </label>
-            <input
-              type="text"
-              id="ucid"
-              value={ucid}
-              onChange={(e) => setUcid(e.target.value)}
-              required
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label htmlFor="studentName" style={styles.label}>
-              Student Name:
-            </label>
-            <input
-              type="text"
-              id="studentName"
-              value={studentName}
-              onChange={(e) => setStudentName(e.target.value)}
-              required
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label htmlFor="reason" style={styles.label}>
-              Reason:
-            </label>
-            <input
-              type="text"
-              id="reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              required
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label htmlFor="dateofcheating" style={styles.label}>
-              Date of Cheating:
-            </label>
-            <input
-              type="date"
-              id="dateofcheating"
-              value={dateOfCheating}
-              onChange={(e) => setDateOfCheating(e.target.value)}
-              required
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label htmlFor="examination" style={styles.label}>
-              Examination:
-            </label>
-
-            <select
-              id="examination"
-              name="examination"
-              value={examination}
-              onChange={(e) => setExamination(e.target.value)}
-              required
-              style={styles.input}
+      <div className="container py-5">
+        <div className="row justify-content-center">
+          <div className="col-md-10">
+            <div
+              className="card shadow-lg border-0 rounded-4"
+              style={{ backgroundColor: "#fff" }}
             >
-              <option value="Mid-Sem">Mid-Sem</option>
-              <option value="End-Sem">End-Sem</option>
-            </select>
+              <div
+                className="card-header text-white text-center rounded-top-4"
+                style={{
+                  background: "linear-gradient(90deg, #007bff, #00c6ff)",
+                }}
+              >
+                <h3 className="mb-0">📄 Add Student Record</h3>
+              </div>
+              <div className="card-body p-5">
+                {error && <div className="alert alert-danger">{error}</div>}
+                {success && (
+                  <div className="alert alert-success">{success}</div>
+                )}
+
+                <form onSubmit={handleSubmit}>
+                  <div className="row g-4">
+                    <div className="col-md-6">
+                      <label className="form-label">UCID</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={ucid}
+                        onChange={(e) => setUcid(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Student Name</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={studentName}
+                        onChange={(e) => setStudentName(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Email</label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        pattern="^[a-zA-Z0-9._%+-]+@spit\.ac\.in$"
+                        title="Only @spit.ac.in emails are allowed"
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Subject Name</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={subjectName}
+                        onChange={(e) => setSubjectName(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="col-12">
+                      <label className="form-label">Reason for Cheating</label>
+                      <textarea
+                        className="form-control"
+                        rows="3"
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        required
+                      ></textarea>
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Date of Cheating</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={dateOfCheating}
+                        onChange={(e) => setDateOfCheating(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-3">
+                      <label className="form-label">Examination</label>
+                      <select
+                        className="form-select"
+                        value={examination}
+                        onChange={(e) => setExamination(e.target.value)}
+                        required
+                      >
+                        <option value="Mid-Sem">Mid-Sem</option>
+                        <option value="End-Sem">End-Sem</option>
+                      </select>
+                    </div>
+
+                    <div className="col-md-3">
+                      <label className="form-label">Semester</label>
+                      <select
+                        className="form-select"
+                        value={semester}
+                        onChange={(e) => setSemester(e.target.value)}
+                        required
+                      >
+                        {[...Array(8).keys()].map((num) => (
+                          <option key={num + 1} value={num + 1}>
+                            {num + 1}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="col-12">
+                      <label className="form-label">Upload Proof</label>
+                      <div className="input-group">
+                        <input
+                          type="file"
+                          className="form-control"
+                          onChange={handleProofChange}
+                          required
+                        />
+                        <span className="input-group-text bg-primary text-white">
+                          <FaUpload />
+                        </span>
+                      </div>
+                      {proof && (
+                        <div className="mt-3">
+                          <img
+                            src={proof}
+                            alt="Proof"
+                            className="img-fluid rounded shadow"
+                            style={{ maxHeight: "200px", objectFit: "cover" }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="col-12 text-center">
+                      <button
+                        type="submit"
+                        className="btn btn-primary w-100 py-2 rounded-pill shadow-sm"
+                      >
+                        Submit Record 🚀
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div className="card-footer text-center text-muted">
+                <small>
+                  Ensure all details are accurate before submission.
+                </small>
+              </div>
+            </div>
           </div>
-
-          <div style={styles.inputGroup}>
-            <label htmlFor="semester" style={styles.label}>
-              Semester:
-            </label>
-
-            <select
-              id="semester"
-              name="semester"
-              value={semester}
-              onChange={(e) => setSemester(e.target.value)}
-              required
-              style={styles.input}
-            >
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-              <option value="7">7</option>
-              <option value="8">8</option>
-            </select>
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label htmlFor="subjectname" style={styles.label}>
-              Subject Name:
-            </label>
-            <input
-              type="text"
-              id="subjectname"
-              value={subjectName}
-              onChange={(e) => setSubjectName(e.target.value)}
-              required
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label htmlFor="proof" style={styles.label}>
-              Proof:
-            </label>
-            <input
-              type="file"
-              id="proof"
-              onChange={handleProofChange}
-              required
-              style={styles.inputFile}
-            />
-            {proof && (
-              <p style={styles.selectedFile}>
-                Selected file: {proof.slice(0, 50)}...
-              </p>
-            )}
-          </div>
-
-          <button type="submit" style={styles.submitButton}>
-            Submit
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    minHeight: "100vh",
-    backgroundColor: "#f4f4f4",
-  },
-  formContainer: {
-    backgroundColor: "#fff",
-    padding: "20px",
-    borderRadius: "8px",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-    width: "400px",
-    marginTop: "20px", // Added margin to separate the form from the navbar
-  },
-  title: {
-    textAlign: "center",
-    marginBottom: "20px",
-    color: "#333",
-  },
-  error: {
-    color: "red",
-    marginBottom: "10px",
-  },
-  success: {
-    color: "green",
-    marginBottom: "10px",
-  },
-  inputGroup: {
-    marginBottom: "15px",
-  },
-  label: {
-    display: "block",
-    marginBottom: "5px",
-    color: "#555",
-  },
-  input: {
-    width: "100%",
-    padding: "10px",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
-    boxSizing: "border-box",
-  },
-  inputFile: {
-    width: "100%",
-  },
-  selectedFile: {
-    marginTop: "5px",
-    color: "#777",
-    fontSize: "14px",
-  },
-  submitButton: {
-    backgroundColor: "#007bff",
-    color: "#fff",
-    padding: "10px 15px",
-    borderRadius: "4px",
-    border: "none",
-    cursor: "pointer",
-    width: "100%",
-  },
 };
 
 export default AddRecord;
