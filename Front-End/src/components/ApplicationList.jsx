@@ -2,13 +2,36 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Chart from "chart.js/auto";
+import Navbar from "../components/commonNavBar";
+import Sidebar from "../components/sideBar";
 
 const ApplicationList = () => {
+  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get the unique tab identifier
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
+    const name = localStorage.getItem(`name_${tabId}`);
+    const role = localStorage.getItem(`role_${tabId}`);
+
+    // If token does not exist, navigate to login page
+    if (!token) {
+      navigate("/");
+    } else {
+      // Set the user info (name, role) into the state
+      setUserInfo({ name, role });
+    }
+  }, [navigate]);
   const [applications, setApplications] = useState([]);
   const [token, setToken] = useState("");
   const [role, setRole] = useState("");
-  const [chartData, setChartData] = useState({ approved: 0, pending: 0, rejected: 0 });
-  const navigate = useNavigate();
+  const [chartData, setChartData] = useState({
+    approved: 0,
+    pending: 0,
+    rejected: 0,
+  });
 
   useEffect(() => {
     const tabId = sessionStorage.getItem("tabId");
@@ -25,16 +48,20 @@ const ApplicationList = () => {
 
     const interval = setInterval(() => {
       fetchApplications(storedToken);
-    }, 2000);
+      window.location.reload(); // Refreshes the page every 1 second
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [navigate]);
 
   const fetchApplications = async (authToken) => {
     try {
-      const response = await axios.get("http://localhost:8000/api/applications", {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
+      const response = await axios.get(
+        "http://localhost:8000/api/applications",
+        {
+          headers: { Authorization: `Bearer ${authToken}` },
+        }
+      );
       setApplications(response.data);
       updateChartData(response.data);
     } catch (error) {
@@ -91,7 +118,11 @@ const ApplicationList = () => {
 
   return (
     <div className="container py-5">
-      <h2 className="text-center mb-4 display-6 fw-bold text-primary">📋 Application List</h2>
+      <Sidebar userInfo={userInfo} />
+
+      <h2 className="text-center mb-4 display-6 fw-bold text-primary">
+        📋 Application List
+      </h2>
 
       {/* Chart Section */}
       <div className="row mb-5 justify-content-center">
@@ -104,7 +135,10 @@ const ApplicationList = () => {
 
       {/* Add Form Button */}
       <div className="d-flex justify-content-end mb-4">
-        <button onClick={() => navigate("/ApplicationForm")} className="btn btn-primary btn-lg shadow">
+        <button
+          onClick={() => navigate("/ApplicationForm")}
+          className="btn btn-primary btn-lg shadow"
+        >
           ➕ Submit a Form
         </button>
       </div>
@@ -127,10 +161,14 @@ const ApplicationList = () => {
             {applications.length > 0 ? (
               applications.map((app) => (
                 <tr key={app._id} className="fade-in">
-                  <td className="fw-bold text-secondary">🆔 {app._id.slice(-6)}</td>
+                  <td className="fw-bold text-secondary">
+                    🆔 {app._id.slice(-6)}
+                  </td>
                   <td className="text-dark">👤 {app.studentName}</td>
                   <td className="text-primary fw-bold">📌 {app.type}</td>
-                  <td className="text-success fw-bold">💰 {app.requestedBudget}</td>
+                  <td className="text-success fw-bold">
+                    💰 {app.requestedBudget}
+                  </td>
                   <td>
                     <span
                       className={`badge px-3 py-2 ${
@@ -145,7 +183,10 @@ const ApplicationList = () => {
                     </span>
                   </td>
                   <td>
-                    <div className="progress" style={{ height: "22px", borderRadius: "10px" }}>
+                    <div
+                      className="progress"
+                      style={{ height: "22px", borderRadius: "10px" }}
+                    >
                       <div
                         className="progress-bar bg-info"
                         role="progressbar"

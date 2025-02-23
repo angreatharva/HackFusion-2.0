@@ -2,10 +2,31 @@ import { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
+import Navbar from "../components/commonNavBar";
+import Sidebar from "../components/sideBar";
+import { useNavigate } from "react-router-dom";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const StudentDashboard = () => {
+  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get the unique tab identifier
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
+    const name = localStorage.getItem(`name_${tabId}`);
+    const role = localStorage.getItem(`role_${tabId}`);
+
+    // If token does not exist, navigate to login page
+    if (!token) {
+      navigate("/");
+    } else {
+      // Set the user info (name, role) into the state
+      setUserInfo({ name, role });
+    }
+  }, [navigate]);
   const [bookings, setBookings] = useState([]);
   const [facilities, setFacilities] = useState([]);
   const [selectedFacility, setSelectedFacility] = useState("");
@@ -138,6 +159,8 @@ const StudentDashboard = () => {
 
   return (
     <div className="container mt-4">
+      <Sidebar userInfo={userInfo} />
+
       <h2 className="m-2 text-center text-primary fw-bold">
         🚀 Campus Facility Booking
       </h2>
@@ -235,7 +258,7 @@ const StudentDashboard = () => {
           </h3>
           {selectedFacility && date ? (
             <div>
-              <Pie data={chartData} />
+              {/* <Pie data={chartData} /> */}
               {availableSlots.map((slotTime, index) => (
                 <div key={index} className="mb-2">
                   <strong>{slotTime}:</strong>
@@ -287,8 +310,11 @@ const StudentDashboard = () => {
                   <td>{booking.timeSlot}</td>
                   <td>
                     <span
-                      className={`badge bg-$
-                        {booking.status === "Confirmed" ? "success" : "danger"}`}
+                      className={`badge ${
+                        booking.status === "Approved"
+                          ? "bg-success"
+                          : "bg-danger"
+                      }`}
                     >
                       {booking.status}
                     </span>

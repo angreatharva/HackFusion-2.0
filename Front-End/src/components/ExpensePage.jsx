@@ -3,10 +3,29 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Chart from "chart.js/auto";
 import anime from "animejs";
+import Navbar from "../components/commonNavBar";
+import Sidebar from "../components/sideBar";
 
 const ExpensePage = () => {
-  const { budgetId } = useParams();
+  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get the unique tab identifier
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
+    const name = localStorage.getItem(`name_${tabId}`);
+    const role = localStorage.getItem(`role_${tabId}`);
+
+    // If token does not exist, navigate to login page
+    if (!token) {
+      navigate("/");
+    } else {
+      // Set the user info (name, role) into the state
+      setUserInfo({ name, role });
+    }
+  }, [navigate]);
+  const { budgetId } = useParams();
   const [expenses, setExpenses] = useState([]);
   const [budget, setBudget] = useState(null);
   const [formData, setFormData] = useState({

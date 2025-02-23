@@ -1,130 +1,248 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import {
+  Container,
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  List,
+  ListItem,
+  Avatar,
+  Chip,
+  Button,
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  LinearProgress,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
+import { MedicalServices, Emergency } from "@mui/icons-material";
+import Navbar from "../components/commonNavBar";
+import Sidebar from "../components/sideBar";
+import { useNavigate } from "react-router-dom";
 
 const DoctorDashboard = () => {
-  const [appointments, setAppointments] = useState([]);
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [prescription, setPrescription] = useState('');
-  const [bedRest, setBedRest] = useState({ required: false, days: 0 });
+  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // Get the unique tab identifier
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
+    const name = localStorage.getItem(`name_${tabId}`);
+    const role = localStorage.getItem(`role_${tabId}`);
+
+    // If token does not exist, navigate to login page
+    if (!token) {
+      navigate("/");
+    } else {
+      // Set the user info (name, role) into the state
+      setUserInfo({ name, role });
+    }
+  }, [navigate]);
+  const [appointments, setAppointments] = useState([]);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [prescription, setPrescription] = useState("");
+  const [bedRest, setBedRest] = useState({ required: false, days: 1 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const tabId = sessionStorage.getItem("tabId");
+        const token = localStorage.getItem(`authToken_${tabId}`);
+        const { data } = await axios.get(
+          "http://localhost:8000/api/appointments",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setAppointments(data.filter((app) => app.status !== "approved"));
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchAppointments();
   }, []);
 
-  const fetchAppointments = async () => {
+  const handleSubmit = async () => {
+    if (!selectedAppointment || submitting) return;
+
+    setSubmitting(true);
     try {
-      const tabId = sessionStorage.getItem('tabId');
+      const tabId = sessionStorage.getItem("tabId");
       const token = localStorage.getItem(`authToken_${tabId}`);
-      
-      const response = await axios.get('http://localhost:8000/api/appointments', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setAppointments(response.data);
-    } catch (error) {
-      console.error('Failed to fetch appointments:', error);
+
+      await axios.put(
+        `http://localhost:8000/api/appointments/${selectedAppointment._id}`,
+        { prescription, bedRest, status: "approved" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setAppointments((prev) =>
+        prev.filter((app) => app._id !== selectedAppointment._id)
+      );
+      setSelectedAppointment(null);
+      setPrescription("");
+      setBedRest({ required: false, days: 1 });
+    } catch (err) {
+      setError("Failed to approve appointment. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleSubmit = async (appointmentId) => {
-    try {
-      const tabId = sessionStorage.getItem('tabId');
-      const token = localStorage.getItem(`authToken_${tabId}`);
-      
-      await axios.put(`http://localhost:8000/api/appointments/${appointmentId}`, {
-        prescription,
-        bedRest
-      }, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      alert('Appointment updated successfully');
-      fetchAppointments();
-      setSelectedAppointment(null);
-      setPrescription('');
-      setBedRest({ required: false, days: 0 });
-    } catch (error) {
-      alert('Failed to update appointment');
-    }
-  };
+  if (loading) return <LinearProgress sx={{ mt: 2 }} />;
+  if (error)
+    return (
+      <Alert severity="error" sx={{ m: 2 }}>
+        {error}
+      </Alert>
+    );
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 p-6">
-      <h2 className="text-2xl font-bold mb-6">Doctor Dashboard</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Sidebar userInfo={userInfo} />
+
+      <Box display="flex" alignItems="center" gap={2} mb={4}>
+        <MedicalServices fontSize="large" color="primary" />
+        <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+          Doctor's Dashboard
+        </Typography>
+      </Box>
+
+      <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
         {/* Appointments List */}
-        <div className="border rounded p-4">
-          <h3 className="text-xl font-semibold mb-4">Pending Appointments</h3>
-          {appointments.map(appointment => (
-            <div 
-              key={appointment._id}
-              className={`p-4 mb-2 rounded cursor-pointer ${
-                appointment.isEmergency ? 'bg-red-100' : 'bg-gray-100'
-              }`}
-              onClick={() => setSelectedAppointment(appointment)}
-            >
-              <p><strong>Roll No:</strong> {appointment.rollNo}</p>
-              <p><strong>Description:</strong> {appointment.description}</p>
-              {appointment.isEmergency && (
-                <span className="text-red-600 font-bold">EMERGENCY</span>
-              )}
-            </div>
-          ))}
-        </div>
+        <Card sx={{ flex: 1 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Pending Appointments ({appointments.length})
+            </Typography>
+
+            <List sx={{ maxHeight: 500, overflow: "auto" }}>
+              {appointments.map((appointment) => (
+                <ListItem
+                  key={appointment._id}
+                  button
+                  selected={selectedAppointment?._id === appointment._id}
+                  onClick={() => setSelectedAppointment(appointment)}
+                  sx={{
+                    mb: 1,
+                    borderRadius: 2,
+                    ...(appointment.isEmergency && {
+                      borderLeft: "3px solid",
+                      borderColor: "error.main",
+                    }),
+                  }}
+                >
+                  <Box width="100%">
+                    <Box display="flex" alignItems="center" gap={1.5} mb={0.5}>
+                      <Avatar
+                        sx={{
+                          bgcolor: appointment.isEmergency
+                            ? "error.main"
+                            : "primary.main",
+                          width: 32,
+                          height: 32,
+                        }}
+                      >
+                        {appointment.rollNo.slice(-2)}
+                      </Avatar>
+                      <Typography variant="subtitle1">
+                        {appointment.rollNo}
+                      </Typography>
+                      {appointment.isEmergency && (
+                        <Chip
+                          icon={<Emergency fontSize="small" />}
+                          label="Urgent"
+                          color="error"
+                          size="small"
+                        />
+                      )}
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      {appointment.description}
+                    </Typography>
+                  </Box>
+                </ListItem>
+              ))}
+            </List>
+          </CardContent>
+        </Card>
 
         {/* Prescription Form */}
         {selectedAppointment && (
-          <div className="border rounded p-4">
-            <h3 className="text-xl font-semibold mb-4">Prescription</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block mb-2">Prescription:</label>
-                <textarea
+          <Card sx={{ flex: 1 }}>
+            <CardContent>
+              <Box display="flex" flexDirection="column" gap={2}>
+                <Typography variant="h6" gutterBottom>
+                  Quick Prescription
+                </Typography>
+
+                <TextField
+                  multiline
+                  rows={4}
+                  label="Treatment Plan"
                   value={prescription}
                   onChange={(e) => setPrescription(e.target.value)}
-                  className="w-full p-2 border rounded"
-                  rows="4"
+                  fullWidth
                   required
                 />
-              </div>
 
-              <div>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={bedRest.required}
-                    onChange={(e) => setBedRest({...bedRest, required: e.target.checked})}
-                    className="mr-2"
-                  />
-                  Bed Rest Required
-                </label>
-              </div>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={bedRest.required}
+                      onChange={(e) =>
+                        setBedRest((prev) => ({
+                          ...prev,
+                          required: e.target.checked,
+                        }))
+                      }
+                    />
+                  }
+                  label="Bed Rest Required"
+                />
 
-              {bedRest.required && (
-                <div>
-                  <label className="block mb-2">Number of Days:</label>
-                  <input
+                {bedRest.required && (
+                  <TextField
                     type="number"
+                    label="Duration (Days)"
                     value={bedRest.days}
-                    onChange={(e) => setBedRest({...bedRest, days: parseInt(e.target.value)})}
-                    className="w-full p-2 border rounded"
-                    min="1"
-                    required
+                    onChange={(e) =>
+                      setBedRest((prev) => ({
+                        ...prev,
+                        days: Math.max(1, parseInt(e.target.value) || 1),
+                      }))
+                    }
+                    inputProps={{ min: 1 }}
+                    fullWidth
                   />
-                </div>
-              )}
+                )}
 
-              <button 
-                onClick={() => handleSubmit(selectedAppointment._id)}
-                className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
-              >
-                Submit
-              </button>
-            </div>
-          </div>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={handleSubmit}
+                  disabled={!prescription.trim() || submitting}
+                  startIcon={submitting ? <CircularProgress size={20} /> : null}
+                  sx={{ mt: 2 }}
+                >
+                  {submitting ? "Processing..." : "Approve Now"}
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
         )}
-      </div>
-    </div>
+      </Box>
+    </Container>
   );
 };
 

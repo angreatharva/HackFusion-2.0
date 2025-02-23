@@ -1,10 +1,38 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Container, Row, Col, Form, Button, Card, Table } from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Form,
+  Button,
+  Card,
+  Table,
+} from "react-bootstrap";
 import { motion } from "framer-motion";
+import Navbar from "../components/commonNavBar";
+import Sidebar from "../components/sideBar";
 
 const ApplicationForm = ({ onApplicationSubmit }) => {
+  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get the unique tab identifier
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
+    const name = localStorage.getItem(`name_${tabId}`);
+    const role = localStorage.getItem(`role_${tabId}`);
+
+    // If token does not exist, navigate to login page
+    if (!token) {
+      navigate("/");
+    } else {
+      // Set the user info (name, role) into the state
+      setUserInfo({ name, role });
+    }
+  }, [navigate]);
   const [formData, setFormData] = useState({
     studentName: "",
     email: "",
@@ -16,7 +44,6 @@ const ApplicationForm = ({ onApplicationSubmit }) => {
     supportingDoc: "",
   });
 
-  const navigate = useNavigate();
   const [token, setToken] = useState("");
 
   useEffect(() => {
@@ -80,6 +107,8 @@ const ApplicationForm = ({ onApplicationSubmit }) => {
 
   return (
     <Container className="mt-5">
+      <Sidebar userInfo={userInfo} />
+
       <Row className="justify-content-center">
         <Col md={10} lg={8}>
           <motion.div
@@ -88,7 +117,9 @@ const ApplicationForm = ({ onApplicationSubmit }) => {
             transition={{ duration: 0.5 }}
           >
             <Card className="shadow-lg border-0 p-4 rounded-4">
-              <h2 className="text-center mb-4 fw-bold text-primary">📜 Submit Application</h2>
+              <h2 className="text-center mb-4 fw-bold text-primary">
+                📜 Submit Application
+              </h2>
 
               <Form onSubmit={handleSubmit}>
                 <Row className="gy-3">
@@ -134,9 +165,17 @@ const ApplicationForm = ({ onApplicationSubmit }) => {
                   <Col md={6}>
                     <Form.Group>
                       <Form.Label>📌 Application Type</Form.Label>
-                      <Form.Select name="type" value={formData.type} onChange={handleChange}>
-                        <option value="Event Organization">🎉 Event Organization</option>
-                        <option value="Budget Request">💰 Budget Request</option>
+                      <Form.Select
+                        name="type"
+                        value={formData.type}
+                        onChange={handleChange}
+                      >
+                        <option value="Event Organization">
+                          🎉 Event Organization
+                        </option>
+                        <option value="Budget Request">
+                          💰 Budget Request
+                        </option>
                         <option value="Sponsorship">🤝 Sponsorship</option>
                       </Form.Select>
                     </Form.Group>
@@ -185,12 +224,20 @@ const ApplicationForm = ({ onApplicationSubmit }) => {
                   <Col md={12}>
                     <Form.Group>
                       <Form.Label>📎 Upload Supporting Document</Form.Label>
-                      <Form.Control type="file" accept="image/*" onChange={handleFileChange} />
+                      <Form.Control
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                      />
                     </Form.Group>
                   </Col>
                 </Row>
 
-                <Button variant="primary" type="submit" className="w-100 mt-4 shadow-sm">
+                <Button
+                  variant="primary"
+                  type="submit"
+                  className="w-100 mt-4 shadow-sm"
+                >
                   🚀 Submit Application
                 </Button>
               </Form>
@@ -203,7 +250,9 @@ const ApplicationForm = ({ onApplicationSubmit }) => {
         <Col md={10} lg={8}>
           <Card className="shadow-sm rounded-4">
             <Card.Body>
-              <h4 className="text-center mb-4 fw-bold text-secondary">📋 Application Overview</h4>
+              <h4 className="text-center mb-4 fw-bold text-secondary">
+                📋 Application Overview
+              </h4>
               <Table bordered hover responsive className="text-center">
                 <thead className="table-primary">
                   <tr>

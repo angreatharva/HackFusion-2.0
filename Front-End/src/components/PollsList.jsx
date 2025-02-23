@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { decryptData } from "../utils/encryption";
 import { Bar } from "react-chartjs-2";
 import "animate.css";
+import Sidebar from "../components/sideBar";
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -92,10 +94,10 @@ const PollsList = () => {
     if (!storedToken) {
       navigate("/");
     } else {
-      const name = localStorage.getItem(`name_${tabId}`);
-      const role = localStorage.getItem(`role_${tabId}`);
-
-      setUserInfo({ name, role });
+      const name = decryptData(encryptedName);
+      const role = decryptData(encryptedRole);
+      const gender = decryptData(encryptedGender);
+      setUserInfo({ name, role, gender });
       setToken(storedToken);
     }
   }, [navigate]);
@@ -265,7 +267,7 @@ const PollsList = () => {
 
   return (
     <div className="container-fluid py-4">
-      <Navbar userInfo={userInfo} />
+      <Sidebar userInfo={userInfo} />
 
       <div className="row g-4">
         {polls.map((poll) => {

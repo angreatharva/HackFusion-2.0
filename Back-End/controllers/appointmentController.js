@@ -1,12 +1,14 @@
+// controllers/appointmentController.js
 const Appointment = require('../models/Appointment');
 const User = require('../models/userModel');
 const sendEmail = require('../utils/sendEmail');
 
-// Student creates appointment
+console.log("Loading appointment controller...");
+
 exports.createAppointment = async (req, res) => {
   try {
     const { rollNo, description, isEmergency } = req.body;
-    
+
     const student = await User.findOne({
       'studentDetails.rollNumber': rollNo,
       role: 'student'
@@ -29,11 +31,10 @@ exports.createAppointment = async (req, res) => {
   }
 };
 
-// Doctor gets appointments
 exports.getAppointments = async (req, res) => {
   try {
     const appointments = await Appointment.find({ status: 'pending' })
-      .sort({ isEmergency: -1, createdAt: 1 }); // Sort by emergency first, then creation time
+      .sort({ isEmergency: -1, createdAt: 1 });
     res.json(appointments);
   } catch (error) {
     console.error('Get appointments error:', error);
@@ -41,10 +42,9 @@ exports.getAppointments = async (req, res) => {
   }
 };
 
-// Doctor updates appointment with prescription and bed rest
 exports.updateAppointment = async (req, res) => {
   try {
-    const { prescription, bedRest } = req.body;
+    const { prescription, bedRest, status } = req.body;
     const appointmentId = req.params.id;
 
     const appointment = await Appointment.findById(appointmentId);
@@ -55,7 +55,7 @@ exports.updateAppointment = async (req, res) => {
     const student = await User.findOne({
       'studentDetails.rollNumber': appointment.rollNo,
       role: 'student'
-    }).populate('coordinatorDetails');
+    });
 
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
@@ -63,22 +63,28 @@ exports.updateAppointment = async (req, res) => {
 
     appointment.prescription = prescription;
     appointment.bedRest = bedRest;
-    appointment.status = 'completed';
+    appointment.status = status;
     await appointment.save();
 
     // Send email notifications
-    const bedRestText = bedRest.required 
+    const bedRestText = bedRest.required
       ? `\nBed rest has been prescribed for ${bedRest.days} days.`
       : '';
 
     await sendEmail({
-      to: student.studentDetails.parentEmail,
-      subject: 'Medical Update for Your Child',
-      text: `Dear Parent,\n\nYour child ${student.name} visited the college doctor today. 
+      to: student.email,
+      subject: 'Appointment Approved',
+      text: `Dear ${student.name},\n\nYour appointment has been approved by the doctor.
             \nPrescription: ${prescription}${bedRestText}\n\nBest regards,\nCollege Medical Team`
     });
 
-    // Find and notify coordinator
+    await sendEmail({
+      to: student.studentDetails.parentEmail,
+      subject: 'Medical Update for Your Child',
+      text: `Dear Parent,\n\nYour child ${student.name} visited the college doctor today.
+            \nPrescription: ${prescription}${bedRestText}\n\nBest regards,\nCollege Medical Team`
+    });
+
     const coordinator = await User.findOne({
       role: 'coordinator',
       'coordinatorDetails.assignedClasses': student.studentDetails.class
@@ -88,7 +94,7 @@ exports.updateAppointment = async (req, res) => {
       await sendEmail({
         to: coordinator.email,
         subject: 'Student Medical Update',
-        text: `Dear Coordinator,\n\nStudent ${student.name} (Roll No: ${student.studentDetails.rollNumber}) 
+        text: `Dear Coordinator,\n\nStudent ${student.name} (Roll No: ${student.studentDetails.rollNumber})
               visited the doctor today.${bedRestText}\n\nBest regards,\nCollege Medical Team`
       });
     }

@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../components/commonNavBar";
+import Sidebar from "../components/sideBar";
 
 const CreatePoll = () => {
   const [question, setQuestion] = useState("");
@@ -86,7 +87,7 @@ const CreatePoll = () => {
 
   return (
     <div>
-      <Navbar userInfo={userInfo} />
+      <Sidebar userInfo={userInfo} />
 
       <div className="container mt-4">
         <h1 className="text-center mb-4">Create a New Poll ✨</h1>

@@ -1,11 +1,34 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import Navbar from "../components/commonNavBar";
+import Sidebar from "../components/sideBar";
+import { useNavigate } from "react-router-dom";
 
 const ComplaintsList = () => {
+  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get the unique tab identifier
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
+    const name = localStorage.getItem(`name_${tabId}`);
+    const role = localStorage.getItem(`role_${tabId}`);
+
+    // If token does not exist, navigate to login page
+    if (!token) {
+      navigate("/");
+    } else {
+      // Set the user info (name, role) into the state
+      setUserInfo({ name, role });
+    }
+  }, [navigate]);
   const [complaints, setComplaints] = useState([]);
   const [userRole, setUserRole] = useState("");
   const [userName, setUserName] = useState("");
   const [userToken, setUserToken] = useState("");
+  const [boardMemberCount, setBoardMemberCount] = useState(0);
+  const [errorMessages, setErrorMessages] = useState({});
 
   useEffect(() => {
     const tabId = sessionStorage.getItem("tabId");
@@ -17,15 +40,30 @@ const ComplaintsList = () => {
       setUserRole(role);
       setUserName(name);
       setUserToken(token);
+      fetchBoardMemberCount(token); // Fetch board member count once token is set
     }
   }, []);
 
+  const fetchBoardMemberCount = async (token) => {
+    try {
+      const response = await axios.get("http://localhost:8000/api/auth/users", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const boardMembers = response.data.users.filter(
+        (user) => user.role === "board_member"
+      );
+      setBoardMemberCount(boardMembers.length);
+    } catch (error) {
+      console.error("Failed to fetch board member count:", error);
+    }
+  };
+
   useEffect(() => {
-    fetchComplaints();
+    if (userToken) fetchComplaints();
   }, [userToken]);
 
   const fetchComplaints = async () => {
-    if (!userToken) return;
     try {
       const response = await axios.get("http://localhost:8000/api/complaints", {
         headers: { Authorization: `Bearer ${userToken}` },
@@ -38,7 +76,10 @@ const ComplaintsList = () => {
 
   const handleApproval = async (complaintId, hasVoted) => {
     if (hasVoted) {
-      alert("❗ You have already voted for this complaint.");
+      setErrorMessages((prev) => ({
+        ...prev,
+        [complaintId]: "❗ You have already voted for this complaint.",
+      }));
       return;
     }
 
@@ -49,14 +90,26 @@ const ComplaintsList = () => {
         headers: { Authorization: `Bearer ${userToken}` },
       });
 
+      setErrorMessages((prev) => ({
+        ...prev,
+        [complaintId]: "✅ Vote successful!",
+      }));
+
       fetchComplaints();
     } catch (error) {
-      console.error("Failed to vote:", error.response?.data || error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to vote. Please try again.";
+      setErrorMessages((prev) => ({
+        ...prev,
+        [complaintId]: `❌ Error: ${errorMessage}`,
+      }));
     }
   };
 
   return (
     <div className="complaints-container">
+      <Sidebar userInfo={userInfo} />
+
       <h1>📜 Complaints List</h1>
       {complaints.length > 0 ? (
         complaints.map((complaint) => {
@@ -70,9 +123,12 @@ const ComplaintsList = () => {
             name,
             role,
           } = complaint;
+
           const hasVoted = voters?.includes(userName);
+          const approvalThreshold = Math.ceil(0.7 * boardMemberCount); // 70% of board members
+
           const showUser =
-            anonymous && approval_count < 4
+            anonymous && approval_count < approvalThreshold
               ? { name: "Anonymous", role: "Anonymous" }
               : { name, role };
 
@@ -87,21 +143,20 @@ const ComplaintsList = () => {
               <p>
                 👤 <strong>Posted By:</strong> {showUser.name} ({showUser.role})
               </p>
-              <p>
-                ✅ <strong>Approval Count:</strong> {approval_count}
-              </p>
-              <p>
-                📊 <strong>Voted:</strong> {hasVoted ? "✅ Yes" : "❌ No"}
-              </p>
 
               {userRole === "board_member" && (
-                <button
-                  className="approve-btn"
-                  onClick={() => handleApproval(_id, hasVoted)}
-                  disabled={hasVoted}
-                >
-                  {hasVoted ? "✅ Already Voted" : "👍 Approve Complaint"}
-                </button>
+                <>
+                  <button
+                    className="approve-btn"
+                    onClick={() => handleApproval(_id, hasVoted)}
+                    disabled={hasVoted}
+                  >
+                    {hasVoted ? "✅ Already Voted" : "👍 Approve Complaint"}
+                  </button>
+                  {errorMessages[_id] && (
+                    <p className="error-message">{errorMessages[_id]}</p>
+                  )}
+                </>
               )}
             </div>
           );
@@ -165,6 +220,12 @@ const ComplaintsList = () => {
 
           .approve-btn:hover:not(:disabled) {
             background-color: #0056b3;
+          }
+
+          .error-message {
+            margin-top: 8px;
+            color: red;
+            font-size: 0.9em;
           }
 
           @media (max-width: 600px) {

@@ -1,12 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-
+import Navbar from "../components/commonNavBar";
+import Sidebar from "../components/sideBar";
 const AdminPanel = () => {
+  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get the unique tab identifier
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
+    const name = localStorage.getItem(`name_${tabId}`);
+    const role = localStorage.getItem(`role_${tabId}`);
+
+    // If token does not exist, navigate to login page
+    if (!token) {
+      navigate("/");
+    } else {
+      // Set the user info (name, role) into the state
+      setUserInfo({ name, role });
+    }
+  }, [navigate]);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -88,6 +106,8 @@ const AdminPanel = () => {
 
   return (
     <div className="container py-5">
+      {/* <Navbar userInfo={userInfo} /> */}
+      <Sidebar userInfo={userInfo} />
       {toast.show && (
         <div
           className={`alert alert-${toast.type} alert-dismissible fade show`}

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/commonNavBar";
+import Sidebar from "../components/sideBar";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import { FaUpload } from "react-icons/fa";
 
@@ -116,7 +118,7 @@ const AddRecord = () => {
 
   return (
     <div className="min-vh-100 d-flex flex-column bg-light">
-      <Navbar userInfo={userInfo} />
+      <Sidebar userInfo={userInfo} />
       <div className="container py-5">
         <div className="row justify-content-center">
           <div className="col-md-10">

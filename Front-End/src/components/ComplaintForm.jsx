@@ -1,10 +1,47 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import "bootstrap/dist/css/bootstrap.min.css";
+import {
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControlLabel,
+  Checkbox,
+  Button,
+  Box,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
-const ComplaintForm = () => {
+import Navbar from "../components/commonNavBar";
+import Sidebar from "../components/sideBar";
+
+const CombinedComplaintForm = () => {
+  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get the unique tab identifier
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
+    const name = localStorage.getItem(`name_${tabId}`);
+    const role = localStorage.getItem(`role_${tabId}`);
+
+    // If token does not exist, navigate to login page
+    if (!token) {
+      navigate("/");
+    } else {
+      // Set the user info (name, role) into the state
+      setUserInfo({ name, role });
+    }
+  }, [navigate]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("Service");
+  const [category, setCategory] = useState("Administration");
   const [anonymous, setAnonymous] = useState(false);
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
@@ -13,7 +50,6 @@ const ComplaintForm = () => {
     const tabId = sessionStorage.getItem("tabId");
     const storedName = localStorage.getItem(`name_${tabId}`);
     const storedRole = localStorage.getItem(`role_${tabId}`);
-
     if (storedName && storedRole) {
       setName(storedName);
       setRole(storedRole);
@@ -48,7 +84,7 @@ const ComplaintForm = () => {
       alert("Complaint submitted successfully!");
       setTitle("");
       setDescription("");
-      setCategory("Service");
+      setCategory("Administration");
       setAnonymous(false);
       console.log(response.data);
     } catch (error) {
@@ -58,155 +94,103 @@ const ComplaintForm = () => {
   };
 
   return (
-    <div className="complaint-form">
-      <style>
-        {`
-          .complaint-form {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 24px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            font-family: Arial, sans-serif;
-          }
+    <div className="container mt-5">
+      <Sidebar userInfo={userInfo} />
 
-          .complaint-form h1 {
-            font-size: 28px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 20px;
-            text-align: center;
-          }
+      <div className="row justify-content-center">
+        <div className="col-md-8 col-lg-6">
+          <Card className="shadow">
+            <CardContent>
+              <Typography variant="h4" align="center" gutterBottom>
+                Submit Complaint
+              </Typography>
+              <Box
+                component="form"
+                onSubmit={handleSubmit}
+                noValidate
+                sx={{ mt: 2 }}
+              >
+                <TextField
+                  label="Title"
+                  variant="outlined"
+                  fullWidth
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  margin="normal"
+                />
 
-          .complaint-form form {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-          }
+                <TextField
+                  label="Description"
+                  variant="outlined"
+                  fullWidth
+                  multiline
+                  rows={4}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  required
+                  margin="normal"
+                />
 
-          .complaint-form label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #555;
-            display: block;
-            margin-bottom: 6px;
-          }
+                <FormControl fullWidth margin="normal">
+                  <InputLabel>Category</InputLabel>
+                  <Select
+                    value={category}
+                    label="Category"
+                    onChange={(e) => setCategory(e.target.value)}
+                  >
+                    <MenuItem value="Administration">Administration</MenuItem>
+                    <MenuItem value="Staff">Staff</MenuItem>
+                    <MenuItem value="Service">Service</MenuItem>
+                    <MenuItem value="Faculty">Faculty</MenuItem>
+                    <MenuItem value="Committee">Committee</MenuItem>
+                    <MenuItem value="Other">Other</MenuItem>
+                  </Select>
+                </FormControl>
 
-          .complaint-form input[type="text"],
-          .complaint-form textarea,
-          .complaint-form select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
-            color: #333;
-            outline: none;
-            transition: border-color 0.3s ease;
-          }
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={anonymous}
+                      onChange={() => setAnonymous(!anonymous)}
+                    />
+                  }
+                  label="Submit as Anonymous"
+                />
 
-          .complaint-form input[type="text"]:focus,
-          .complaint-form textarea:focus,
-          .complaint-form select:focus {
-            border-color: #007bff;
-          }
+                {!anonymous && (
+                  <Box
+                    sx={{
+                      mb: 2,
+                      p: 2,
+                      backgroundColor: "#f8f9fa",
+                      borderRadius: 1,
+                    }}
+                  >
+                    <Typography variant="body1">
+                      <strong>Name:</strong> {name}
+                    </Typography>
+                    <Typography variant="body1">
+                      <strong>Role:</strong> {role}
+                    </Typography>
+                  </Box>
+                )}
 
-          .complaint-form textarea {
-            height: 100px;
-            resize: vertical;
-          }
-
-          .complaint-form .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          }
-
-          .complaint-form .user-info {
-            background-color: #f9f9f9;
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 8px;
-          }
-
-          .complaint-form button {
-            width: 100%;
-            background-color: #007bff;
-            color: white;
-            padding: 10px 0;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-          }
-
-          .complaint-form button:hover {
-            background-color: #0056b3;
-          }
-        `}
-      </style>
-
-      <h1>Submit Complaint</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Title:</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            placeholder="Enter complaint title"
-          />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                >
+                  Submit Complaint
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
         </div>
-
-        <div>
-          <label>Description:</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-            placeholder="Describe your complaint in detail"
-          ></textarea>
-        </div>
-
-        <div>
-          <label>Category:</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            <option value="Service">Service</option>
-            <option value="Product">Product</option>
-            <option value="Staff">Staff</option>
-          </select>
-        </div>
-
-        <div className="checkbox-group">
-          <input
-            type="checkbox"
-            checked={anonymous}
-            onChange={() => setAnonymous(!anonymous)}
-          />
-          <label>Submit as Anonymous</label>
-        </div>
-
-        {!anonymous && (
-          <div className="user-info">
-            <p>
-              <strong>Name:</strong> {name}
-            </p>
-            <p>
-              <strong>Role:</strong> {role}
-            </p>
-          </div>
-        )}
-
-        <button type="submit">Submit Complaint</button>
-      </form>
+      </div>
     </div>
   );
 };
 
-export default ComplaintForm;
+export default CombinedComplaintForm;

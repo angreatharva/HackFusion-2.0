@@ -40,7 +40,7 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      <Navbar userInfo={userInfo} />
+      {/* <Navbar userInfo={userInfo} /> */}
       <Sidebar userInfo={userInfo} />
 
       <div className="content">

@@ -4,13 +4,32 @@ import axios from "axios";
 import Chart from "chart.js/auto";
 import anime from "animejs";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Navbar from "../components/commonNavBar";
+import Sidebar from "../components/sideBar";
 
 const BudgetPage = () => {
+  const [userInfo, setUserInfo] = useState({ name: "", role: "" });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get the unique tab identifier
+    const tabId = sessionStorage.getItem("tabId");
+    const token = localStorage.getItem(`authToken_${tabId}`);
+    const name = localStorage.getItem(`name_${tabId}`);
+    const role = localStorage.getItem(`role_${tabId}`);
+
+    // If token does not exist, navigate to login page
+    if (!token) {
+      navigate("/");
+    } else {
+      // Set the user info (name, role) into the state
+      setUserInfo({ name, role });
+    }
+  }, [navigate]);
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState("");
   const [applications, setApplications] = useState([]);
-  const navigate = useNavigate();
   const chartRefs = useRef({});
   const chartInstances = useRef({});
 
@@ -28,13 +47,19 @@ const BudgetPage = () => {
 
     const fetchData = async () => {
       try {
-        const budgetsResponse = await axios.get("http://localhost:8000/api/budgets", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const budgetsResponse = await axios.get(
+          "http://localhost:8000/api/budgets",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
-        const applicationsResponse = await axios.get("http://localhost:8000/api/applications", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const applicationsResponse = await axios.get(
+          "http://localhost:8000/api/applications",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         const updatedBudgets = budgetsResponse.data;
         const updatedApplications = applicationsResponse.data;
@@ -43,7 +68,8 @@ const BudgetPage = () => {
 
         // Filter out applications that already have a budget
         const filteredApplications = updatedApplications.filter(
-          (app) => !updatedBudgets.some((budget) => budget.applicationId === app._id)
+          (app) =>
+            !updatedBudgets.some((budget) => budget.applicationId === app._id)
         );
 
         setApplications(filteredApplications);
@@ -122,9 +148,12 @@ const BudgetPage = () => {
       );
 
       // Fetch updated budgets after creating a new budget
-      const updatedBudgets = await axios.get("http://localhost:8000/api/budgets", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const updatedBudgets = await axios.get(
+        "http://localhost:8000/api/budgets",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       setBudgets(updatedBudgets.data);
 
@@ -155,7 +184,11 @@ const BudgetPage = () => {
 
   return (
     <div className="container py-5">
-      <h1 className="text-center mb-5 display-4 fw-bold text-primary">📊 Budget Management</h1>
+      <Sidebar userInfo={userInfo} />
+
+      <h1 className="text-center mb-5 display-4 fw-bold text-primary">
+        📊 Budget Management
+      </h1>
 
       {role === "admin" && (
         <div className="d-flex justify-content-end mb-4">
@@ -176,10 +209,14 @@ const BudgetPage = () => {
               <div className="budget-card card shadow-sm border-0 rounded-4">
                 <div className="card-body">
                   <h5 className="card-title text-dark">{budget.name}</h5>
-                  <p className="card-subtitle text-muted mb-3">📂 {budget.category}</p>
+                  <p className="card-subtitle text-muted mb-3">
+                    📂 {budget.category}
+                  </p>
 
                   <div className="chart-container" style={{ height: "250px" }}>
-                    <canvas ref={(el) => (chartRefs.current[budget._id] = el)}></canvas>
+                    <canvas
+                      ref={(el) => (chartRefs.current[budget._id] = el)}
+                    ></canvas>
                   </div>
 
                   <div className="d-flex justify-content-between mt-4">
@@ -189,11 +226,15 @@ const BudgetPage = () => {
                     </div>
                     <div>
                       <p className="text-muted mb-1">Spent</p>
-                      <h6 className="fw-bold text-danger">₹{budget.spentAmount}</h6>
+                      <h6 className="fw-bold text-danger">
+                        ₹{budget.spentAmount}
+                      </h6>
                     </div>
                     <div>
                       <p className="text-muted mb-1">Remaining</p>
-                      <h6 className="fw-bold text-success">₹{budget.remainingAmount}</h6>
+                      <h6 className="fw-bold text-success">
+                        ₹{budget.remainingAmount}
+                      </h6>
                     </div>
                   </div>
 
@@ -214,14 +255,20 @@ const BudgetPage = () => {
         <div className="mt-5 p-4 bg-light rounded-3 shadow">
           <h2 className="h4 mb-3">Approved Applications</h2>
           {applications.map((app) => (
-            <div key={app._id} className="p-3 mb-2 bg-white rounded-3 d-flex justify-content-between align-items-center shadow-sm">
+            <div
+              key={app._id}
+              className="p-3 mb-2 bg-white rounded-3 d-flex justify-content-between align-items-center shadow-sm"
+            >
               <div>
                 <h5>{app.eventName}</h5>
                 <p className="text-muted mb-0">
                   Requested: ₹{app.requestedBudget} | Type: {app.type}
                 </p>
               </div>
-              <button onClick={() => handleCreateBudget(app._id)} className="btn btn-success rounded-3">
+              <button
+                onClick={() => handleCreateBudget(app._id)}
+                className="btn btn-success rounded-3"
+              >
                 Create Budget
               </button>
             </div>

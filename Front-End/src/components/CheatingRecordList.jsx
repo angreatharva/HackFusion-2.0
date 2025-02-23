@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/commonNavBar";
+import Sidebar from "../components/sideBar";
 import { Table, Form, InputGroup, Spinner, Alert } from "react-bootstrap";
 
 function CheatingRecordList() {
@@ -73,7 +74,7 @@ function CheatingRecordList() {
 
   return (
     <div className="container mt-4">
-      <Navbar userInfo={userInfo} />
+      <Sidebar userInfo={userInfo} />
       <h2 className="text-center text-success mb-4">
         <i className="fas fa-list-alt me-2"></i>Cheating Records
       </h2>

@@ -25,82 +25,17 @@ const Sidebar = ({ userInfo }) => {
           <FaTimes />
         </button>
 
-        <h1 className="sidebar-brand">CMS</h1>
+        <h1 className="sidebar-brand">NOVA</h1>
 
         <div className="sidebar-links">
-          {userInfo.role === "doctor" && (
+          {/* {userInfo.role === "doctor" && (
             <button
               className="nav-button"
               onClick={() => navigate("/healthReport")}
             >
               Health Report
             </button>
-          )}
-
-          <button
-            className="nav-button"
-            onClick={() => navigate("/complaintForm")}
-          >
-            Complaint Form
-          </button>
-
-          {userInfo.role === "student" && (
-            <button
-              className="nav-button"
-              onClick={() => navigate("/complaintList")}
-            >
-              Complaint List
-            </button>
-          )}
-
-          <button
-            className="nav-button"
-            onClick={() => navigate("/cheatingList")}
-          >
-            Cheating List
-          </button>
-
-          {userInfo.role === "admin" && (
-            <button
-              className="nav-button"
-              onClick={() => navigate("/cheatingAdmin")}
-            >
-              Cheating Admin
-            </button>
-          )}
-
-          <button
-            className="nav-button"
-            onClick={() => navigate("/facilityBooking")}
-          >
-            Facility Booking
-          </button>
-
-          <button
-            className="nav-button"
-            onClick={() => navigate("/applicationList")}
-          >
-            Applications List
-          </button>
-
-          {userInfo.role === "student" && (
-            <button
-              className="nav-button"
-              onClick={() => navigate("/applicationForm")}
-            >
-              Applications Form
-            </button>
-          )}
-
-          {userInfo.role === "student" && (
-            <button
-              className="nav-button"
-              onClick={() => navigate("/pollsList")}
-            >
-              Go to Voting
-            </button>
-          )}
-
+          )} */}
           {userInfo.role === "admin" && (
             <>
               <button
@@ -115,15 +50,110 @@ const Sidebar = ({ userInfo }) => {
               >
                 Create Poll
               </button>
+            </>
+          )}
+          {userInfo.role !== "invigilator" &&
+            userInfo.role !== "doctor" &&
+            userInfo.role !== "board_member" && (
               <button
                 className="nav-button"
                 onClick={() => navigate("/pollsList")}
               >
                 Go to Voting
               </button>
+            )}
+          {userInfo.role !== "invigilator" && userInfo.role !== "doctor" && (
+            <button
+              className="nav-button"
+              onClick={() => navigate("/applicationList")}
+            >
+              Applications List
+            </button>
+          )}
+          {userInfo.role === "student" && (
+            <button
+              className="nav-button"
+              onClick={() => navigate("/applicationForm")}
+            >
+              Applications Form
+            </button>
+          )}
+          {userInfo.role !== "invigilator" && userInfo.role !== "doctor" && (
+            <button className="nav-button" onClick={() => navigate("/budget")}>
+              Budget
+            </button>
+          )}
+          {userInfo.role !== "invigilator" &&
+            userInfo.role !== "doctor" &&
+            userInfo.role !== "board_member" && (
+              <button
+                className="nav-button"
+                onClick={() => navigate("/facilityBooking")}
+              >
+                Facility Booking
+              </button>
+            )}
+          {/* {userInfo.role === "admin" && (
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/facilityApproval")}
+            >
+              Facility Approval
+            </button>
+          )} */}
+          {userInfo.role === "invigilator" && (
+            <>
+              <button
+                className="navbar-button"
+                onClick={() => navigate("/cheatingAdmin")}
+              >
+                Cheating Admin
+              </button>
+            </>
+          )}
+          {userInfo.role !== "doctor" && userInfo.role !== "board_member" && (
+            <>
+              <button
+                className="navbar-button"
+                onClick={() => navigate("/cheatingList")}
+              >
+                Cheating List
+              </button>
             </>
           )}
 
+          {userInfo.role === "student" && (
+            <button
+              className="nav-button"
+              onClick={() => navigate("/complaintForm")}
+            >
+              Complaint Form
+            </button>
+          )}
+          {userInfo.role !== "invigilator" && userInfo.role !== "doctor" && (
+            <button
+              className="nav-button"
+              onClick={() => navigate("/complaintList")}
+            >
+              Complaint List
+            </button>
+          )}
+          {userInfo.role === "student" && (
+            <button
+              className="nav-button"
+              onClick={() => navigate("/studentAppointmentForm")}
+            >
+              Student Appointment Form
+            </button>
+          )}
+          {userInfo.role === "doctor" && (
+            <button
+              className="nav-button"
+              onClick={() => navigate("/doctorDashboard")}
+            >
+              Doctor Dashboard
+            </button>
+          )}
           <button className="logout-button" onClick={handleLogout}>
             Logout
           </button>
@@ -177,6 +207,7 @@ const Sidebar = ({ userInfo }) => {
 
         .sidebar-brand {
           font-size: 2em;
+          color: #FFFFFF;
           font-weight: bold;
           margin: 10px 0;
           text-align: center;
@@ -190,16 +221,17 @@ const Sidebar = ({ userInfo }) => {
         }
 
         .nav-button {
-          background-color: #4caf50;
-          color: white;
-          border: none;
-          padding: 10px 15px;
-          border-radius: 5px;
-          width: 100%;
-          text-align: left;
-          cursor: pointer;
-          transition: background-color 0.3s;
-        }
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 0; /* Adjusted padding for better alignment */
+  border-radius: 5px;
+  width: 100%;
+  text-align: left;
+  padding-left: 10px; /* Added left padding for spacing */
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
 
         .nav-button:hover {
           background-color: #45a049;
