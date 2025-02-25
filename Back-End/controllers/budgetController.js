@@ -30,12 +30,6 @@ const createBudget = async (req, res) => {
       return res.status(400).json({ error: "Invalid or unapproved application." });
     }
 
-    // 🚨 Check if a budget already exists for this application
-    const existingBudget = await Budget.findOne({ linkedApplication: applicationId });
-    if (existingBudget) {
-      return res.status(400).json({ error: "A budget has already been created for this application." });
-    }
-
     const newBudget = new Budget({
       name,
       category,

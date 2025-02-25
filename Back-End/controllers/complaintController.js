@@ -5,7 +5,6 @@ const CommentModel = require("../models/commentModel");
 exports.submitComplaint = async (req, res) => {
   const { title, description, category, anonymous, name, role } = req.body;
 
-  // Basic validation
   if (
     !title ||
     !description ||
@@ -21,7 +20,6 @@ exports.submitComplaint = async (req, res) => {
   }
 
   try {
-    // Perform toxicity check
     const titleResult = await CommentModel.analyzeComment(title);
     const descriptionResult = await CommentModel.analyzeComment(description);
 
@@ -35,29 +33,28 @@ exports.submitComplaint = async (req, res) => {
       descriptionScore: (descriptionScore * 100).toFixed(2) + "%",
     };
 
-    // Block complaint if toxic content detected
+    // If toxicity is detected, return 201 with an appropriate message
     if (titleScore > 0.6 || descriptionScore > 0.6) {
-      return res.status(400).json({
-        message: "Vulgar content detected. Complaint cannot be posted.",
+      return res.status(201).json({
+        success: false,
+        message: "Inappropriate content detected. Complaint cannot be posted.",
         toxicityReport,
       });
     }
 
-    // Prepare complaint data (always include name and role)
     const complaintData = {
       title,
       description,
       category,
       anonymous,
-      name, // Store name regardless of anonymity
-      role, // Store role regardless of anonymity
+      name,
+      role,
     };
-
-    // Save complaint to the database
     const newComplaint = new ComplaintModel(complaintData);
     await newComplaint.save();
 
     res.status(201).json({
+      success: true,
       message: "Complaint submitted successfully.",
       complaint: newComplaint,
       toxicityReport,

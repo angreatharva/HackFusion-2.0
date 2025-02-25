@@ -81,12 +81,24 @@ const CombinedComplaintForm = () => {
           },
         }
       );
-      alert("Complaint submitted successfully!");
-      setTitle("");
-      setDescription("");
-      setCategory("Administration");
-      setAnonymous(false);
-      console.log(response.data);
+
+      if (response.status === 201) {
+        const message = response.data.message;
+
+        if (
+          message === "Vulgar content detected. Complaint cannot be posted."
+        ) {
+          alert("Inappropriate content detected. Complaint cannot be posted.");
+        } else if (message === "Complaint submitted successfully.") {
+          alert("Complaint submitted successfully!");
+          setTitle("");
+          setDescription("");
+          setCategory("Administration");
+          setAnonymous(false);
+        } else {
+          alert(message); // Fallback for other messages
+        }
+      }
     } catch (error) {
       console.error("Failed to submit complaint:", error);
       alert("Failed to submit complaint. Please try again.");

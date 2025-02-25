@@ -1,4 +1,3 @@
-// models/Appointment.js
 const mongoose = require('mongoose');
 
 const appointmentSchema = new mongoose.Schema({
@@ -16,21 +15,15 @@ const appointmentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'completed'],
+    enum: ['pending', 'completed'],
     default: 'pending'
   },
   prescription: {
     type: String
   },
   bedRest: {
-    required: {
-      type: Boolean,
-      default: false
-    },
-    days: {
-      type: Number,
-      default: 0
-    }
+    required: Boolean,
+    days: Number
   },
   createdAt: {
     type: Date,

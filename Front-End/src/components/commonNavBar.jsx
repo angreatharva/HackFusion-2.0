@@ -5,203 +5,187 @@ const Navbar = ({ userInfo }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Handle logout logic, e.g., remove user data from localStorage or context
     navigate("/"); // Redirect to login page
   };
 
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        {/* You can add a logo or app name here */}
-        <h1 className="navbar-brand">CMS</h1>
+        <h1 className="navbar-brand">NOVA</h1>
       </div>
 
       <div className="navbar-right">
-        {userInfo.role !== "invigilator" && (
+        {/* Admin Options */}
+        {userInfo.role === "admin" && (
           <>
-            {userInfo.role === "doctor" && (
-              <button
-                className="navbar-button"
-                onClick={() => navigate("/healthReport")}
-              >
-                Health Report
-              </button>
-            )}
-
             <button
               className="navbar-button"
-              onClick={() => navigate("/complaintForm")}
+              onClick={() => navigate("/register")}
             >
-              Complaint Form
+              Register
             </button>
-
             <button
               className="navbar-button"
-              onClick={() => navigate("/complaintList")}
+              onClick={() => navigate("/create-poll")}
             >
-              Complaint List
+              Create Poll
             </button>
+          </>
+        )}
 
+        {/* Common Options for non-invigilator and non-doctor roles */}
+        {userInfo.role !== "invigilator" && userInfo.role !== "doctor" && (
+          <>
             <button
               className="navbar-button"
-              onClick={() => navigate("/budget")}
+              onClick={() => navigate("/pollsList")}
             >
-              Budget
+              Go to Voting
             </button>
-
-            {userInfo.role === "admin" && (
-              <button
-                className="navbar-button"
-                onClick={() => navigate("/facilityApproval")}
-              >
-                Facility Approval
-              </button>
-            )}
-
-            <button
-              className="navbar-button"
-              onClick={() => navigate("/facilityBooking")}
-            >
-              Facility Booking
-            </button>
-
             <button
               className="navbar-button"
               onClick={() => navigate("/applicationList")}
             >
               Applications List
             </button>
-
-            {userInfo.role === "student" && (
-              <button
-                className="navbar-button"
-                onClick={() => navigate("/applicationForm")}
-              >
-                Applications Form
-              </button>
-            )}
-
-            {userInfo.role === "student" && (
-              <button
-                className="navbar-button"
-                onClick={() => navigate("/pollsList")}
-              >
-                Go to Voting
-              </button>
-            )}
-
-            {userInfo.role === "admin" && (
-              <>
-                <button
-                  className="navbar-button"
-                  onClick={() => navigate("/register")}
-                >
-                  Register
-                </button>
-                <button
-                  className="navbar-button"
-                  onClick={() => navigate("/create-poll")}
-                >
-                  Create Poll
-                </button>
-                <button
-                  className="navbar-button"
-                  onClick={() => navigate("/pollsList")}
-                >
-                  Go to Voting
-                </button>
-              </>
-            )}
-          </>
-        )}
-        <button
-          className="navbar-button"
-          onClick={() => navigate("/cheatingList")}
-        >
-          Cheating List
-        </button>
-        <button
-          className="navbar-button"
-          onClick={() => {
-            navigate("/studentAppointmentForm");
-          }}
-        >
-          studentAppointmentForm
-        </button>
-        <button
-          className="navbar-button"
-          onClick={() => {
-            navigate("/doctorDashboard");
-          }}
-        >
-          doctorDashboard
-        </button>
-
-        {userInfo.role === "invigilator" && (
-          <>
             <button
               className="navbar-button"
-              onClick={() => navigate("/cheatingAdmin")}
+              onClick={() => navigate("/budget")}
             >
-              Cheating Admin
+              Budget
+            </button>
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/facilityBooking")}
+            >
+              Facility Booking
+            </button>
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/complaintList")}
+            >
+              Complaint List
+            </button>
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/cheatingList")}
+            >
+              Cheating List
             </button>
           </>
         )}
 
-        <button className="logout-button" onClick={handleLogout}>
+        {/* Student-Specific Options */}
+        {userInfo.role === "student" && (
+          <>
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/applicationForm")}
+            >
+              Applications Form
+            </button>
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/complaintForm")}
+            >
+              Complaint Form
+            </button>
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/studentAppointmentForm")}
+            >
+              Student Appointment Form
+            </button>
+          </>
+        )}
+
+        {/* Doctor-Specific Options */}
+        {userInfo.role === "doctor" && (
+          <>
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/healthReport")}
+            >
+              Health Report
+            </button>
+            <button
+              className="navbar-button"
+              onClick={() => navigate("/doctorDashboard")}
+            >
+              Doctor Dashboard
+            </button>
+          </>
+        )}
+
+        {/* Invigilator-Specific Option */}
+        {userInfo.role === "invigilator" && (
+          <button
+            className="navbar-button"
+            onClick={() => navigate("/cheatingAdmin")}
+          >
+            Cheating Admin
+          </button>
+        )}
+
+        {/* Admin-Specific Facility Approval */}
+        {userInfo.role === "admin" && (
+          <button
+            className="navbar-button"
+            onClick={() => navigate("/facilityApproval")}
+          >
+            Facility Approval
+          </button>
+        )}
+
+        {/* Logout Button */}
+        <button className="navbar-button logout" onClick={handleLogout}>
           Logout
         </button>
       </div>
+
       <style>{`
-  .navbar {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    background-color: #333 !important;
-    padding: 8px !important;
-    width: 100% !important;
-  }
+        .navbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 20px;
+          background-color: #222;
+          color: white;
+        }
 
-  .navbar-left {
-    color: white !important;
-  }
+        .navbar-brand {
+        color: #f1f1f1;
+          font-size: 1.8em;
+          font-weight: bold;
+        }
 
-  .navbar-brand {
-    font-size: 1.5em !important;
-    color: white !important;
-    font-weight: bold !important;
-  }
+        .navbar-right {
+          display: flex;
+          gap: 10px;
+        }
 
-  .navbar-right {
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important; /* Adds spacing between buttons */
-  }
+        .navbar-button {
+          background-color: #4caf50;
+          color: white;
+          border: none;
+          padding: 8px 12px;
+          border-radius: 5px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
 
-  .navbar-button, .logout-button {
-    display: inline-block !important;
-    padding: 8px 16px !important;
-    border: none !important;
-    background-color: #4caf50 !important;
-    color: white !important;
-    border-radius: 5px !important;
-    cursor: pointer !important;
-    transition: background-color 0.3s ease !important;
-    white-space: nowrap !important; /* Ensures the button doesn't wrap text */
-  }
+        .navbar-button:hover {
+          background-color: #45a049;
+        }
 
-  .navbar-button:hover {
-    background-color: #45a049 !important;
-  }
+        .navbar-button.logout {
+          background-color: #f44336;
+        }
 
-  .logout-button {
-    background-color: #f44336 !important;
-  }
-
-  .logout-button:hover {
-    background-color: #d32f2f !important;
-  }
-`}</style>
+        .navbar-button.logout:hover {
+          background-color: #d32f2f;
+        }
+      `}</style>
     </nav>
   );
 };

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import request from "../api/api";
 import Navbar from "../components/commonNavBar";
-import Sidebar from "../components/sideBar";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Register = () => {
@@ -198,7 +197,7 @@ const Register = () => {
 
   return (
     <div>
-      <Sidebar userInfo={userInfo} />
+      <Navbar userInfo={userInfo} />
       <div className="container mt-5">
         <div className="card shadow-sm mx-auto" style={{ maxWidth: "650px" }}>
           <div className="card-body">
